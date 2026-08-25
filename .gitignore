@@ -1,0 +1,15 @@
+__pycache__/
+.env
+.env.local
+.env.server
+
+
+node_modules
+# Scripts input data
+scripts/input/**
+
+# Scripts output data
+scripts/stac_output/**
+
+# Caddy proxy state and auto-generated certs
+fair-data-finder/proxy/data/

@@ -1,0 +1,13 @@
+/.nuxt
+/.output
+/node_modules
+
+# Secrets — never bake into image
+.env
+*.env
+
+# Git
+.git/
+.gitignore
+
+README.md
