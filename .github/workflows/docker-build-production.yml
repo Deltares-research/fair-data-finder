@@ -9,6 +9,10 @@ on:
     types:
       - published
 
+env:
+  REGISTRY_ADDRESS: containers.deltares.nl
+  HARBOR_PROJECT: fair-data
+
 jobs:
   build-and-push:
     name: Build and push ${{ matrix.service }}
@@ -43,7 +47,7 @@ jobs:
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.REGISTRY }}
+          registry: ${{ env.REGISTRY_ADDRESS }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -54,4 +58,4 @@ jobs:
           file: ${{ matrix.file }}
           target: ${{ matrix.target }}
           push: true
-          tags: ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_PROJECT }}/${{ matrix.image }}:${{ steps.version.outputs.version }}
+          tags: ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:${{ steps.version.outputs.version }}

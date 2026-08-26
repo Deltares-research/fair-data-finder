@@ -1,11 +1,14 @@
 name: Build and Push Development Images
 
-
 on:
   push:
     branches:
       - dev
   workflow_dispatch:
+
+env:
+  REGISTRY_ADDRESS: containers.deltares.nl
+  HARBOR_PROJECT: fair-data
 
 jobs:
   build-and-push:
@@ -42,7 +45,7 @@ jobs:
       - name: Log in to registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.REGISTRY }}
+          registry: ${{ env.REGISTRY_ADDRESS }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -54,5 +57,5 @@ jobs:
           target: ${{ matrix.target }}
           push: true
           tags: |
-            ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_PROJECT }}/${{ matrix.image }}:${{ steps.meta.outputs.version }}-${{ steps.meta.outputs.sha }}
-            ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_PROJECT }}/${{ matrix.image }}:development
+            ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:${{ steps.meta.outputs.version }}-${{ steps.meta.outputs.sha }}
+            ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:development
