@@ -143,12 +143,14 @@
   import { useSearchPageStore } from '~/stores/searchPage'
   import { useRoute } from 'vue-router'
   import { useAuth } from '~/composables/useAuth'
+  import { useConfigStore } from '~/stores/config'
   import FeatureFilters from '@/components/FeatureFilters.vue'
   import { formatDate } from '~/utils/helpers'
 
   const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const configStore = useConfigStore()
 
-  const canAccess = computed(() => isAuthenticated.value)
+  const canAccess = computed(() => !configStore.authEnabled || isAuthenticated.value)
 
   const store = useSearchPageStore()
   const route = useRoute()

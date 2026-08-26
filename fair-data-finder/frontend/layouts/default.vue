@@ -18,6 +18,7 @@
       </v-tabs>
       <v-spacer />
       <v-btn
+        v-if="configStore.authEnabled"
         :loading="isLoading"
         color="primary"
         variant="text"

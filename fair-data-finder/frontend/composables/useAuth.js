@@ -1,10 +1,14 @@
 import { useAuthStore } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
+import { useConfigStore } from '~/stores/config'
 import { computed } from 'vue'
 
 export function useAuth() {
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
+  const configStore = useConfigStore()
+
+  const authEnabled = computed(() => configStore.authEnabled)
 
   // Combined authentication and permission checking
   const isAuthenticated = computed(() => authStore.isLoggedIn)
@@ -37,6 +41,9 @@ export function useAuth() {
   }
 
   async function checkAuth($api = null) {
+    if (!authEnabled.value) {
+      return false
+    }
     const authResult = await authStore.checkAuth($api)
     if (authResult) {
       // Refresh permissions when user is authenticated
@@ -46,6 +53,7 @@ export function useAuth() {
   }
 
   return {
+    authEnabled,
     isAuthenticated,
     user,
     displayName,

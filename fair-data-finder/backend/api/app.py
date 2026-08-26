@@ -27,7 +27,10 @@ from api.config import APISettings
 from api.core.stacdms import StacDmsApi
 from api.core.startup import create_admin_users, run_migrations
 from api.database.db import create_db_engine
-from api.extensions.core.sso_auth_extension import SSOAuthExtension
+from api.extensions.core.sso_auth_extension import (
+    PUBLIC_READ_ENDPOINTS,
+    SSOAuthExtension,
+)
 from api.extensions.keywords.keyword_extension import KeywordExtension
 from api.extensions.rbac.rbac_extension import RBACExtension
 
@@ -36,14 +39,6 @@ Settings.set(APISettings())
 settings: APISettings = Settings.get()
 _LOGGER = logging.getLogger("uvicorn.default")
 db_engine = create_db_engine()
-
-sso_client = MicrosoftSSO(
-    client_id=settings.azure_app_client_id,
-    client_secret=settings.azure_app_client_secret,
-    tenant=settings.azure_tenant_id,
-    redirect_uri=f"https://{settings.app_domain}/api/auth/callback",
-    allow_insecure_http=True,
-)
 
 filter_client = FiltersClient()
 search_filter_extension = SearchFilterExtension(client=filter_client)
@@ -65,11 +60,25 @@ extensions = [
 ]
 
 extensions.append(RBACExtension())
+
+# The SSO extension is always registered: it is what applies the authentication
+# dependency to every non-public route. `auth_enabled` only controls whether the
+# /auth/* login endpoints exist, so disabling it never widens access.
+sso_client = MicrosoftSSO(
+    client_id=settings.azure_app_client_id,
+    client_secret=settings.azure_app_client_secret,
+    tenant=settings.azure_tenant_id,
+    redirect_uri=f"https://{settings.app_domain}/api/auth/callback",
+    allow_insecure_http=True,
+)
 extensions.append(
     SSOAuthExtension(
         settings=settings,
         sso_client=sso_client,
-        public_endpoints=[],
+        login_enabled=settings.auth_enabled,
+        public_endpoints=(
+            PUBLIC_READ_ENDPOINTS if settings.public_read_enabled else []
+        ),
     )
 )
 

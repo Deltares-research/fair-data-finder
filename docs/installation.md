@@ -105,3 +105,55 @@ https://localhost/api/auth/callback
 | `FRONTEND_URL` | optional    | `http://localhost:3000/` (required) |
 
 
+## Feature flags
+
+The application can be deployed either as the full data-management suite or as a
+public, search-only portal. This is controlled entirely through environment
+variables — no code changes are needed to switch between the two.
+
+**Backend** (`fair-data-finder/backend/.env`):
+
+| Variable              | Default | Effect                                                                                                                    |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `AUTH_ENABLED`        | `true`  | Registers the Microsoft SSO extension. When `false`, no login endpoints exist and the `AZURE_*` variables are unused.       |
+| `PUBLIC_READ_ENABLED` | `false` | Exposes the STAC read endpoints (`/search`, `/collections`, `/keywords`, `/conformance`, ...) without an auth cookie.       |
+
+Write endpoints are always protected by RBAC, regardless of these flags.
+
+**Frontend** (`fair-data-finder/frontend/.env`):
+
+| Variable               | Default | Effect                                                       |
+| ---------------------- | ------- | ------------------------------------------------------------ |
+| `AUTH_ENABLED`         | `true`  | Shows the login/logout button and performs the auth check.   |
+| `REGISTER_TAB_ENABLED` | `true`  | Shows the Register tab and enables the `/register/*` routes.  |
+| `ADMIN_TABS_ENABLED`   | `true`  | Shows the Domains, Keywords and Groups tabs and their routes. |
+| `ABOUT_TAB_ENABLED`    | `false` | Shows the About tab.                                         |
+
+Disabled routes return a 404 even when navigated to directly. The item detail page
+`/register/{id}/view` stays reachable regardless of `REGISTER_TAB_ENABLED`, because the
+search results link to it.
+
+### Public search-only deployment
+
+Backend `.env`:
+
+```
+AUTH_ENABLED=false
+PUBLIC_READ_ENABLED=true
+```
+
+Frontend `.env`:
+
+```
+AUTH_ENABLED=false
+REGISTER_TAB_ENABLED=false
+ADMIN_TABS_ENABLED=false
+ABOUT_TAB_ENABLED=true
+```
+
+This yields a Search and About interface with no login, usable by anonymous visitors.
+To re-enable dataset registration later, set `AUTH_ENABLED=true` in both files together
+with `REGISTER_TAB_ENABLED=true` (and `ADMIN_TABS_ENABLED=true` for domain, keyword and
+group management), supply the `AZURE_*` credentials and `APP_SECRET_KEY`, and keep
+`PUBLIC_READ_ENABLED=true` so that search remains publicly accessible.
+

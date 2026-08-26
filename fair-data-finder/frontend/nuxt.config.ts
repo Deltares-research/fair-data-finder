@@ -32,6 +32,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       aboutTabEnabled: process.env.ABOUT_TAB_ENABLED === 'true',
+      // Opt-out flags: unset keeps the full Fair Data Finder behaviour.
+      authEnabled: process.env.AUTH_ENABLED !== 'false',
+      registerTabEnabled: process.env.REGISTER_TAB_ENABLED !== 'false',
+      adminTabsEnabled: process.env.ADMIN_TABS_ENABLED !== 'false',
     },
   },
 

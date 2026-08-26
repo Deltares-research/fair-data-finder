@@ -23,12 +23,12 @@
   import { useNuxtApp } from '#app'
 
   const nuxtApp = useNuxtApp()
-  const { isAuthenticated, isLoading, checkAuth } = useAuth()
+  const { authEnabled, isAuthenticated, isLoading, checkAuth } = useAuth()
 
   await checkAuth(nuxtApp.$api)
 
   const layoutName = computed(() => {
-    if (isAuthenticated.value) {
+    if (authEnabled.value && isAuthenticated.value) {
       return 'logged-in'
     }
     return 'default'

@@ -10,6 +10,13 @@ docker compose up --build
 
 Browse to `https://localhost` (accept the self-signed cert once). See [Installation](docs/installation.md) for verification steps and the recommended hot-reload workflow.
 
+## Deployment modes
+
+The application ships as the full data-management suite by default, but can be configured
+as a public, search-only portal (Search and About only, no login, anonymous STAC read
+access) through environment variables alone. See
+[Feature flags](docs/installation.md#feature-flags).
+
 ## Repository structure
 
 ```
