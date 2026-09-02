@@ -7,7 +7,17 @@ import globals from 'globals'
 
 const isProd = process.env.NODE_ENV === 'production'
 
+// Injected by Nuxt at runtime and not importable from '#app', so it has to be
+// declared here rather than imported at the call site.
+const nuxtGlobals = { $fetch: 'readonly' }
+
 export default [
+  // Generated output, not source. Without this `eslint .` reports well over a
+  // hundred thousand problems from .nuxt and drowns out real ones.
+  {
+    ignores: ['.nuxt/**', '.output/**', 'dist/**', 'openapi/**'],
+  },
+
   // Base JS recommended
   js.configs.recommended,
 
@@ -17,12 +27,22 @@ export default [
   // Optional: Vuetify preset first, so your rules can override it
   // ...vuetify,
 
-  // Your JS rules
+  // Node ESM (this config, build scripts): globals only. Source style rules are
+  // applied separately below, and only to scripts/.
   {
-    files: ['**/*.js'],
+    files: ['**/*.mjs'],
     languageOptions: {
       sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...globals.node },
+    },
+  },
+
+  // Your JS rules
+  {
+    files: ['**/*.js', 'scripts/**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: { ...globals.browser, ...globals.node, ...nuxtGlobals },
     },
     rules: {
       indent: ['error', 2, { SwitchCase: 1 }],
@@ -47,7 +67,7 @@ export default [
     files: ['**/*.vue'],
     languageOptions: {
       sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...globals.browser, ...globals.node, ...nuxtGlobals },
     },
     rules: {
       indent: 'off',

@@ -111,7 +111,7 @@ export const useSearchPageStore = defineStore('searchPage', () => {
 
   async function fetchCollections() {
     try {
-      const data = await fetchCollectionsApi({ includeHeaders: false })
+      const data = await fetchCollectionsApi()
       collections.value = (data?.collections || []).map(c => ({ ...c, selected: false }))
     } catch (e) {
       console.error('Failed to fetch collections:', e?.message || e?.toString() || 'Unknown error')

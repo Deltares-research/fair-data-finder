@@ -68,7 +68,9 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - API_URL=http://backend:8000
+      # Overrides the value in ./frontend/.env: inside the compose network the
+      # backend is reachable by service name, not on localhost.
+      - NUXT_INTERNAL_API_BASE_URL=http://backend:8000/api
     ports:
       - 24678:24678
       - 3000:3000
@@ -79,7 +81,6 @@ services:
     volumes:
       - ./frontend:/src
       - /src/node_modules
-      - /nuxt/.nuxt
 
   proxy:
     container_name: proxy

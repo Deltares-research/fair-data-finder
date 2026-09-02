@@ -1,7 +1,7 @@
 /**
  * Items API requests
  */
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 
 
 /**
@@ -12,7 +12,6 @@ import { useNuxtApp, useRequestHeaders } from '#app'
  */
 export async function createItem(collectionId, itemData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/collections/{collection_id}/items', {
@@ -24,7 +23,6 @@ export async function createItem(collectionId, itemData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -44,7 +42,6 @@ export async function createItem(collectionId, itemData) {
  */
 export async function updateItem(collectionId, itemId, itemData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/collections/{collection_id}/items/{item_id}', {
@@ -57,7 +54,6 @@ export async function updateItem(collectionId, itemId, itemData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -76,7 +72,6 @@ export async function updateItem(collectionId, itemId, itemData) {
  */
 export async function deleteItem(collectionId, itemId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/collections/{collection_id}/items/{item_id}', {
@@ -86,9 +81,6 @@ export async function deleteItem(collectionId, itemId) {
         item_id: itemId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Failed to delete item:', error?.message || error?.toString() || 'Unknown error')
@@ -103,7 +95,6 @@ export async function deleteItem(collectionId, itemId) {
  */
 export async function fetchItemById(itemId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/search', {
@@ -116,7 +107,6 @@ export async function fetchItemById(itemId) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     //Here we are returing only on feature back. What will happen if in the feature we have more features?

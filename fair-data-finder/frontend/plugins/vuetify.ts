@@ -6,7 +6,10 @@ import { createVuetify } from 'vuetify'
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
-    // ... your configuration
+    // Vuetify components measure the viewport internally (v-app-bar,
+    // v-data-table, v-dialog). Without this the server assumes a desktop
+    // viewport and the client re-measures, causing hydration mismatches.
+    ssr: true,
   })
   app.vueApp.use(vuetify)
 })

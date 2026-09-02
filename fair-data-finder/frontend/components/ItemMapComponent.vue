@@ -49,6 +49,7 @@
 
 <script setup>
   import { ref, provide } from 'vue'
+  import { useRuntimeConfig } from '#app'
   import { MapboxMap, MapboxNavigationControl, MapboxLayer } from '@studiometa/vue-mapbox-gl'
   import MapSelectTool from '@/components/MapSelectTool.vue'
   import MapControlsZoom from '@/components/MapControlsZoom.vue'
@@ -75,7 +76,7 @@
   const emit = defineEmits(['change'])
 
   const mapInstance = ref(null)
-  const accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+  const accessToken = useRuntimeConfig().public.mapboxToken
   const mapSelectToolRef = ref(null)
 
   const zoom = ref(1)

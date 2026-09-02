@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -23,15 +23,11 @@ export const useAuthStore = defineStore('auth', () => {
       // Get $api from parameter or useNuxtApp (fallback for client-side calls)
       const api = $api || useNuxtApp().$api
       
-      // For SSR, we need to forward request headers to include cookies
-      const headers = process.server ? useRequestHeaders() : {}
-      
       const userData = await api('/auth/me', {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          ...headers, // Forward server-side headers (including cookies)
         },
       })
       
@@ -72,30 +68,15 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     isLoading.value = true
     error.value = null
-    
-    try {
-      // Clear user data first
-      user.value = null
-      isAuthenticated.value = false
-      
-      // Clear the DMS_TOKEN cookie
-      if (process.client) {
-        document.cookie = 'DMS_TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        window.location.href = '/'
-      }
-      
-    } catch (err) {
-      console.error('Logout failed:', err?.message || err?.toString() || 'Unknown error')
-      error.value = err?.message || 'Logout failed'
-      // Even if logout fails, clear local state and redirect
-      user.value = null
-      isAuthenticated.value = false
-      if (process.client) {
-        document.cookie = 'DMS_TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        window.location.href = '/'
-      }
-    } finally {
-      isLoading.value = false
+
+    user.value = null
+    isAuthenticated.value = false
+
+    // The cookie is HttpOnly, so only the backend can clear it. That endpoint
+    // expires the cookie and redirects to FRONTEND_URL; the resulting full page
+    // load rebuilds client state from scratch.
+    if (process.client) {
+      window.location.href = '/api/auth/logout'
     }
   }
 

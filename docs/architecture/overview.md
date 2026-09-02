@@ -57,8 +57,8 @@ fair-data-finder/        ← all application source lives here
 ├── database/            PostgreSQL + PostGIS + pgSTAC bootstrap SQL
 ├── proxy/               Caddy configuration and Dockerfile
 ├── docker-compose.yml   Local development orchestration
-├── compose.backend.prod.yml   Production backend deployment
-└── compose.frontend.prod.yml  Production frontend deployment
+└── deployment/
+    └── docker-compose.prod.yml  Production deployment (backend + frontend)
 ```
 
 
