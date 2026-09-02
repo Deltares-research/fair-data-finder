@@ -10,11 +10,9 @@
       size="64"
     />
   </div>
-  <ClientOnly v-else>
-    <NuxtLayout :name="layoutName">
-      <NuxtPage />
-    </NuxtLayout>
-  </ClientOnly>
+  <NuxtLayout v-else :name="layoutName">
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup>

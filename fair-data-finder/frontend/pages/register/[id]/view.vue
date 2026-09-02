@@ -87,12 +87,17 @@
             </v-card-title>
             <v-card-text style="min-height: 300px;">
               <div class="map-wrapper">
-                <item-map-component
-                  :draw-mode="false"
-                  :center="mapCenter"
-                  :layer-options="layerOptions"
-                  :zoom-bounds="bounds"
-                />
+                <ClientOnly>
+                  <item-map-component
+                    :draw-mode="false"
+                    :center="mapCenter"
+                    :layer-options="layerOptions"
+                    :zoom-bounds="bounds"
+                  />
+                  <template #fallback>
+                    <div style="height: 300px;" />
+                  </template>
+                </ClientOnly>
               </div>
             </v-card-text>
           </v-card>

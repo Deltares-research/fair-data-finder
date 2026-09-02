@@ -477,14 +477,19 @@
             </v-card-title>
             <v-card-text style="min-height: 300px;">
               <div class="mb-4 map-wrapper">
-                <item-map-component
-                  :enabled-tools="['polygon', 'marker']"
-                  :center="mode === 'create' ? [5.1, 52.07] : [0, 0]"
-                  :zoom="mode === 'create' ? undefined : 2"
-                  :layer-options="layerOptions"
-                  :zoom-bounds="zoomBounds"
-                  @change="handleMapChange"
-                />
+                <ClientOnly>
+                  <item-map-component
+                    :enabled-tools="['polygon', 'marker']"
+                    :center="mode === 'create' ? [5.1, 52.07] : [0, 0]"
+                    :zoom="mode === 'create' ? undefined : 2"
+                    :layer-options="layerOptions"
+                    :zoom-bounds="zoomBounds"
+                    @change="handleMapChange"
+                  />
+                  <template #fallback>
+                    <div style="height: 300px;" />
+                  </template>
+                </ClientOnly>
               </div>
             </v-card-text>
             <v-card-text>
