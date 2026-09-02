@@ -2,7 +2,9 @@
 
 ## Production topology
 
-Local and production topologies differ — services run on separate hosts, there is no local Caddy, and Postgres is managed by ICT. Production does **not** override `docker-compose.yml`. Each server gets its own slim standalone compose file.
+Local and production topologies differ — there is no local Caddy in production, and Postgres is managed by ICT. Production does **not** override `docker-compose.yml`; it uses a single standalone compose file, `deployment/docker-compose.prod.yml`.
+
+The backend and frontend containers run on the **same host and the same Docker network**. This is required, not incidental: Nuxt server-side rendering calls the backend directly at `http://backend:8000/api`, which only resolves if both containers share a Compose network. See "SSR requires a shared network" below.
 
 ```
                           ┌─────────────────────────────┐
@@ -11,18 +13,21 @@ Local and production topologies differ — services run on separate hosts, there
                                           │ https://<public-domain>
                                           ▼
                 ┌────────────────────────────────────────────────┐
-                │         Frontend server (public-facing)         │
+                │              Application server                 │
                 │                                                  │
-                │   ┌───────────────┐      ┌────────────────┐     │
-                │   │ Caddy (:443)  │─────▶│ Nuxt (:3000)   │     │
-                │   │ TLS + routing │      └────────────────┘     │
-                │   └───────┬───────┘                             │
-                └───────────┼──────────────────────────────────────┘
-                 /api/* over internal network
-                            ▼
-                ┌────────────────────────────────────────────────┐
-                │         Backend server (internal only)          │
-                │            FastAPI (:8000, via uv)              │
+                │   ┌───────────────┐                             │
+                │   │ nginx (:443)  │  TLS + path routing         │
+                │   └───┬───────┬───┘                             │
+                │       │ /     │ /api                            │
+                │       ▼       ▼                                 │
+                │  ┌─────────┐ ┌──────────────┐                   │
+                │  │  Nuxt   │ │   FastAPI    │                   │
+                │  │ (:3000) │ │   (:8000)    │                   │
+                │  └────┬────┘ └──────┬───────┘                   │
+                │       │             ▲                           │
+                │       └─────────────┘                           │
+                │     SSR: http://backend:8000/api                │
+                │     (Docker network, never via nginx)           │
                 └───────────────────┬────────────────────────────┘
                                     │ DB_CONNECTION_URL over internal network
                                     ▼
@@ -31,47 +36,46 @@ Local and production topologies differ — services run on separate hosts, there
                 │          Postgres + PostGIS (:5432)             │
                 └────────────────────────────────────────────────┘
 
-    Migrations (pypgstac migrate + alembic upgrade head) are run once
-    (and on each deploy) from the backend server against the database
-    server.
+    Migrations (pypgstac migrate + alembic upgrade head) run as the
+    `migrate` service on each deploy, before the backend starts.
 ```
 
-## Compose files per server
+## Compose file
 
-| Server | File | Env template |
+| Component | File | Env template |
 |--------|------|--------------|
-| Backend | `compose.backend.prod.yml` | `backend/.env.example` → `backend/.env` |
-| Frontend | `compose.frontend.prod.yml` | `frontend/.env.example` → `frontend/.env` |
+| Backend + frontend | `deployment/docker-compose.prod.yml` | `backend/.env.example` and `frontend/.env.example` → `.env` |
 | Database | none | native PostgreSQL 16 + PostGIS (ICT-managed) |
 
 ## Deploy steps
 
-**Backend host:**
-
 ```bash
-cp fair-data-finder/backend/.env.example fair-data-finder/backend/.env
-# edit secrets, DB_CONNECTION_URL, APP_DOMAIN, etc.
+cd deployment
+cp ../fair-data-finder/backend/.env.example .env
+# append the frontend variables and edit secrets, DB_CONNECTION_URL, APP_DOMAIN, etc.
 
 export HARBOR_REGISTRY=<registry-host>
+export PROJECT_NAME=<backend-image-project-name>
 export IMAGE_TAG=<git-sha>
-docker compose -f compose.backend.prod.yml pull
-docker compose -f compose.backend.prod.yml up -d
-
-# After first deploy and on every schema change:
-docker compose -f compose.backend.prod.yml run --rm backend \
-  sh -c "pypgstac migrate && alembic upgrade head"
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-**Frontend host:**
+The `migrate` service runs `pypgstac migrate && alembic upgrade head` automatically and the backend waits for it to complete successfully.
 
-```bash
-cp fair-data-finder/frontend/.env.example fair-data-finder/frontend/.env
+## SSR requires a shared network
 
-export HARBOR_REGISTRY=<registry-host>
-export IMAGE_TAG=<git-sha>
-docker compose -f compose.frontend.prod.yml pull
-docker compose -f compose.frontend.prod.yml up -d
-```
+The frontend makes two kinds of request, and they take different paths:
+
+- **Browser requests** always use the relative URL `/api`, so they go through nginx.
+- **SSR requests** use `NUXT_INTERNAL_API_BASE_URL`, set to `http://backend:8000/api`, and go straight over the Docker network. They never touch nginx.
+
+If the backend is unreachable at that address, the frontend does **not** fail loudly. It returns HTTP 200 with a page rendered from empty data, and the browser does not retry — so an authenticated user sees a permanently logged-out page. Requests also hang until the connection times out, which was measured at roughly 28 seconds per render.
+
+Consequences:
+
+- Do not split the backend and frontend across separate hosts without giving them a shared Docker network (for example an `external` network) and updating `NUXT_INTERNAL_API_BASE_URL` accordingly.
+- Health checks that only assert HTTP 200 will not catch a misconfigured `NUXT_INTERNAL_API_BASE_URL`. After deploying, verify that a logged-in page server-renders the username.
 
 ## Container images
 
