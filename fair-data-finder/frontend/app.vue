@@ -18,12 +18,15 @@
 <script setup>
   import { useAuth } from '~/composables/useAuth'
   import { computed } from 'vue'
-  import { useNuxtApp } from '#app'
+  import { useNuxtApp, callOnce } from '#app'
 
   const nuxtApp = useNuxtApp()
   const { isAuthenticated, isLoading, checkAuth } = useAuth()
 
-  await checkAuth(nuxtApp.$api)
+  // Runs during SSR only; the resulting auth and permission state reaches the
+  // client through the Nuxt payload, so hydration does not repeat /auth/me
+  // and /permissions.
+  await callOnce('check-auth', () => checkAuth(nuxtApp.$api))
 
   const layoutName = computed(() => {
     if (isAuthenticated.value) {
