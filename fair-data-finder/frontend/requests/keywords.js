@@ -1,7 +1,7 @@
 /**
  * Keywords API requests
  */
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 
 /**
  * Fetch all facilities (domains)
@@ -9,7 +9,6 @@ import { useNuxtApp, useRequestHeaders } from '#app'
  */
 export async function fetchFacilities() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const data = await $api('/facilities', {
@@ -17,7 +16,6 @@ export async function fetchFacilities() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -35,7 +33,6 @@ export async function fetchFacilities() {
  */
 export async function fetchFacilityById(facilityId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const data = await $api('/facility/{facility_id}', {
@@ -46,7 +43,6 @@ export async function fetchFacilityById(facilityId) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -64,7 +60,6 @@ export async function fetchFacilityById(facilityId) {
  */
 export async function createFacility(facilityData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/facility', {
@@ -73,7 +68,6 @@ export async function createFacility(facilityData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -92,7 +86,6 @@ export async function createFacility(facilityData) {
  */
 export async function updateFacility(facilityId, facilityData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/facility/{facility_id}', {
@@ -104,7 +97,6 @@ export async function updateFacility(facilityId, facilityData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -122,7 +114,6 @@ export async function updateFacility(facilityId, facilityData) {
  */
 export async function deleteFacility(facilityId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/facility/{facility_id}', {
@@ -131,9 +122,6 @@ export async function deleteFacility(facilityId) {
         facility_id: facilityId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Error deleting facility:', error?.message || error?.toString() || 'Unknown error')
@@ -147,7 +135,6 @@ export async function deleteFacility(facilityId) {
  */
 export async function fetchKeywordGroups() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const data = await $api('/keywordgroups', {
@@ -155,7 +142,6 @@ export async function fetchKeywordGroups() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -173,7 +159,6 @@ export async function fetchKeywordGroups() {
  */
 export async function createKeywordGroup(groupData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/keywordgroup', {
@@ -182,7 +167,6 @@ export async function createKeywordGroup(groupData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -201,7 +185,6 @@ export async function createKeywordGroup(groupData) {
  */
 export async function updateKeywordGroup(groupId, groupData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/keywordgroup/{keywordgroup_id}', {
@@ -213,7 +196,6 @@ export async function updateKeywordGroup(groupId, groupData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -231,7 +213,6 @@ export async function updateKeywordGroup(groupId, groupData) {
  */
 export async function deleteKeywordGroup(groupId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/keywordgroup/{keywordgroup_id}', {
@@ -240,9 +221,6 @@ export async function deleteKeywordGroup(groupId) {
         keywordgroup_id: groupId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Error deleting keyword group:', error?.message || error?.toString() || 'Unknown error')
@@ -257,7 +235,6 @@ export async function deleteKeywordGroup(groupId) {
  */
 export async function fetchKeywordsByFacilityId(facilityId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const keywordsResult = await $api('/keywords', {
@@ -268,7 +245,6 @@ export async function fetchKeywordsByFacilityId(facilityId) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -286,7 +262,6 @@ export async function fetchKeywordsByFacilityId(facilityId) {
  */
 export async function fetchKeywordsByGroupId(groupId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const keywordsResult = await $api('/keywords', {
@@ -297,7 +272,6 @@ export async function fetchKeywordsByGroupId(groupId) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -315,7 +289,6 @@ export async function fetchKeywordsByGroupId(groupId) {
  */
 export async function createKeyword(keywordData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/keyword', {
@@ -324,7 +297,6 @@ export async function createKeyword(keywordData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -343,7 +315,6 @@ export async function createKeyword(keywordData) {
  */
 export async function updateKeyword(keywordId, keywordData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/keyword/{keyword_id}', {
@@ -355,7 +326,6 @@ export async function updateKeyword(keywordId, keywordData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -373,7 +343,6 @@ export async function updateKeyword(keywordId, keywordData) {
  */
 export async function deleteKeyword(keywordId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/keyword/{keyword_id}', {
@@ -382,9 +351,6 @@ export async function deleteKeyword(keywordId) {
         keyword_id: keywordId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Error deleting keyword:', error?.message || error?.toString() || 'Unknown error')
@@ -399,7 +365,6 @@ export async function deleteKeyword(keywordId) {
  */
 export async function linkKeywordGroupToFacility(linkData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/facility_keywordgroup_link', {
@@ -408,7 +373,6 @@ export async function linkKeywordGroupToFacility(linkData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -426,7 +390,6 @@ export async function linkKeywordGroupToFacility(linkData) {
  */
 export async function unlinkKeywordGroupFromFacility(linkData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/facility_keywordgroup_link', {
@@ -435,7 +398,6 @@ export async function unlinkKeywordGroupFromFacility(linkData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
   } catch (error) {
@@ -450,7 +412,6 @@ export async function unlinkKeywordGroupFromFacility(linkData) {
  */
 export async function fetchKeywords() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     // Call /keywords without parameters to get all keyword groups
@@ -459,7 +420,6 @@ export async function fetchKeywords() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     

@@ -76,6 +76,7 @@
 
 <script setup>
   import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
+  import { useRuntimeConfig } from '#app'
   import { MapboxMap, MapboxCluster, MapboxNavigationControl, MapboxLayer } from '@studiometa/vue-mapbox-gl'
   import { center, bbox } from '@turf/turf'
   import { isEqual } from 'lodash-es'
@@ -99,7 +100,7 @@
   const LINE_TYPES = new Set([ 'LineString', 'MultiLineString' ])
 
   const mapInstance = ref(null)
-  const accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+  const accessToken = useRuntimeConfig().public.mapboxToken
   const imageLoaded = ref(false)
   const selectedFeature = ref(null)
   const justClickedFeature = ref(false)

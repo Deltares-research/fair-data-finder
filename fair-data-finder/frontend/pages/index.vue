@@ -131,7 +131,14 @@
         class="right-col"
       >
         <v-sheet class="right-map">
-          <search-map-component />
+          <!-- Mapbox GL needs a real DOM and cannot be server-rendered. The
+               fallback reserves the same box so hydration causes no shift. -->
+          <ClientOnly>
+            <search-map-component />
+            <template #fallback>
+              <div class="map-placeholder" />
+            </template>
+          </ClientOnly>
         </v-sheet>
       </v-col>
     </v-row>
@@ -142,6 +149,7 @@
   import { computed, watch, ref } from 'vue'
   import { useSearchPageStore } from '~/stores/searchPage'
   import { useRoute } from 'vue-router'
+  import { useAsyncData } from '#app'
   import { useAuth } from '~/composables/useAuth'
   import { useConfigStore } from '~/stores/config'
   import FeatureFilters from '@/components/FeatureFilters.vue'
@@ -166,31 +174,35 @@
     store.includeEmptyGeometry = q.includeEmptyGeometry === 'on'
   }
 
-  // Fetch collections during SSR
-  await store.fetchCollections()
-  const ids = toArr(q.collections)
-  if (ids.length > 0) {
-    store.collections = store.collections.map(c => ({
-      ...c,
-      selected: ids.includes(c.id)
-    }))
-  }
+  // Fetched once on the server and transferred via the Nuxt payload, so
+  // hydration does not repeat these requests. Collections and keywords are
+  // independent, so they run in parallel; the search depends on the selection
+  // state derived from them and therefore runs afterwards.
+  await useAsyncData('index-initial-data', async () => {
+    await Promise.all([store.fetchCollections(), store.fetchKeywords()])
 
-  // Fetch keywords during SSR
-  await store.fetchKeywords()
-  const keywordIds = toArr(q.keywords)
-  if (keywordIds.length > 0) {
-    store.keywords = store.keywords.map(k => ({
-      ...k,
-      selected: keywordIds.includes(k.id)
-    }))
-  }
+    const ids = toArr(q.collections)
+    if (ids.length > 0) {
+      store.collections = store.collections.map(c => ({
+        ...c,
+        selected: ids.includes(c.id)
+      }))
+    }
 
-  // Perform initial search during SSR if access is allowed
-  // This runs on both server and client, preserving SSR benefits
-  if (canAccess.value) {
-    await store.search(500)
-  }
+    const keywordIds = toArr(q.keywords)
+    if (keywordIds.length > 0) {
+      store.keywords = store.keywords.map(k => ({
+        ...k,
+        selected: keywordIds.includes(k.id)
+      }))
+    }
+
+    if (canAccess.value) {
+      await store.search(500)
+    }
+
+    return true
+  })
 
   const queryInput = ref(store.q || '')
   function applyQuery() {
@@ -289,6 +301,12 @@
 
 .right-map {
   height: 100%;
+}
+
+/* Reserves the map box during SSR so hydration causes no layout shift. */
+.map-placeholder {
+  height: 100%;
+  width: 100%;
 }
 
 /* Clamp long descriptions to 3 lines */

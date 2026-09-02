@@ -29,32 +29,49 @@ export default defineNuxtConfig({
     },
   },
 
+  // Every value below is resolved when the container starts, not when the
+  // image is built, so the same image tag can be promoted between
+  // environments. Defaults are the neutral "nothing configured" values.
   runtimeConfig: {
+    // Server-only; never serialised into the browser payload.
+    // Set per environment with NUXT_INTERNAL_API_BASE_URL.
+    internalApiBaseUrl: '',
+
+    // Serialised into the browser payload and visible in devtools.
+    // Set per environment with NUXT_PUBLIC_*.
     public: {
-      aboutTabEnabled: process.env.ABOUT_TAB_ENABLED === 'true',
+      aboutTabEnabled: false,
+      mapboxToken: '',
       // Opt-out flags: unset keeps the full Fair Data Finder behaviour.
-      authEnabled: process.env.AUTH_ENABLED !== 'false',
-      registerTabEnabled: process.env.REGISTER_TAB_ENABLED !== 'false',
-      adminTabsEnabled: process.env.ADMIN_TABS_ENABLED !== 'false',
+      // Disable per environment with NUXT_PUBLIC_AUTH_ENABLED=false etc.
+      authEnabled: true,
+      registerTabEnabled: true,
+      adminTabsEnabled: true,
     },
   },
 
   openFetch: {
     clients: {
       api: {
-        schema: process.env.API_URL + "/api/api",
-        baseURL: "/api",
+        // Read from the committed schema rather than fetched from a running
+        // backend, so the build needs no network access and no deployment URL.
+        // Refresh it with `npm run schema:update` when the API changes.
+        schema: './openapi/api.json',
+        baseURL: '/api',
       },
     },
   },
 
-  routeRules: {
-    "/api/**": {
-      proxy: process.env.API_URL + "/api/**",
-      headers: {
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Origin': 'http://localhost:3000',
-      }
+  nitro: {
+    // Dev server only; Nitro drops this from production builds. It serves the
+    // browser's relative /api calls while there is no nginx in front of Nuxt.
+    // In production nginx owns /api, and SSR goes straight to the backend via
+    // runtimeConfig.internalApiBaseUrl.
+    devProxy: {
+      '/api': {
+        target: process.env.NUXT_INTERNAL_API_BASE_URL || 'http://localhost:8000/api',
+        changeOrigin: true,
+      },
     },
   },
 

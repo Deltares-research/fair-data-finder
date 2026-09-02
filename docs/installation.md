@@ -122,15 +122,18 @@ Write endpoints are always protected by RBAC, regardless of these flags.
 
 **Frontend** (`fair-data-finder/frontend/.env`):
 
-| Variable               | Default | Effect                                                       |
-| ---------------------- | ------- | ------------------------------------------------------------ |
-| `AUTH_ENABLED`         | `true`  | Shows the login/logout button and performs the auth check.   |
-| `REGISTER_TAB_ENABLED` | `true`  | Shows the Register tab and enables the `/register/*` routes.  |
-| `ADMIN_TABS_ENABLED`   | `true`  | Shows the Domains, Keywords and Groups tabs and their routes. |
-| `ABOUT_TAB_ENABLED`    | `false` | Shows the About tab.                                         |
+These are runtime values, resolved when the container starts rather than when the
+image is built, so the same image tag can be promoted between environments.
+
+| Variable                            | Default | Effect                                                       |
+| ----------------------------------- | ------- | ------------------------------------------------------------ |
+| `NUXT_PUBLIC_AUTH_ENABLED`          | `true`  | Shows the login/logout button and performs the auth check.   |
+| `NUXT_PUBLIC_REGISTER_TAB_ENABLED`  | `true`  | Shows the Register tab and enables the `/register/*` routes.  |
+| `NUXT_PUBLIC_ADMIN_TABS_ENABLED`    | `true`  | Shows the Domains, Keywords and Groups tabs and their routes. |
+| `NUXT_PUBLIC_ABOUT_TAB_ENABLED`     | `false` | Shows the About tab.                                         |
 
 Disabled routes return a 404 even when navigated to directly. The item detail page
-`/register/{id}/view` stays reachable regardless of `REGISTER_TAB_ENABLED`, because the
+`/register/{id}/view` stays reachable regardless of `NUXT_PUBLIC_REGISTER_TAB_ENABLED`, because the
 search results link to it.
 
 ### Public search-only deployment
@@ -145,15 +148,16 @@ PUBLIC_READ_ENABLED=true
 Frontend `.env`:
 
 ```
-AUTH_ENABLED=false
-REGISTER_TAB_ENABLED=false
-ADMIN_TABS_ENABLED=false
-ABOUT_TAB_ENABLED=true
+NUXT_PUBLIC_AUTH_ENABLED=false
+NUXT_PUBLIC_REGISTER_TAB_ENABLED=false
+NUXT_PUBLIC_ADMIN_TABS_ENABLED=false
+NUXT_PUBLIC_ABOUT_TAB_ENABLED=true
 ```
 
 This yields a Search and About interface with no login, usable by anonymous visitors.
-To re-enable dataset registration later, set `AUTH_ENABLED=true` in both files together
-with `REGISTER_TAB_ENABLED=true` (and `ADMIN_TABS_ENABLED=true` for domain, keyword and
+To re-enable dataset registration later, set `AUTH_ENABLED=true` on the backend and
+`NUXT_PUBLIC_AUTH_ENABLED=true` on the frontend, together with
+`NUXT_PUBLIC_REGISTER_TAB_ENABLED=true` (and `NUXT_PUBLIC_ADMIN_TABS_ENABLED=true` for domain, keyword and
 group management), supply the `AZURE_*` credentials and `APP_SECRET_KEY`, and keep
 `PUBLIC_READ_ENABLED=true` so that search remains publicly accessible.
 

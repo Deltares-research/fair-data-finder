@@ -22,3 +22,6 @@ class APISettings(PgstacSettings):
     # Expose the STAC read endpoints without an authentication cookie.
     # Write endpoints remain protected by RBAC regardless of this setting.
     public_read_enabled: bool = False
+    # Secure by default: a missing value must fail towards the safe behaviour.
+    # Only set COOKIE_SECURE=false for local dev served over plain HTTP.
+    cookie_secure: bool = True

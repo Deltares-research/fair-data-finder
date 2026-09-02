@@ -1,0 +1,60 @@
+# Combined production compose for the backend and frontend services.
+#
+# Required environment variables (set in your shell before running):
+#   export HARBOR_REGISTRY=<registry-host>
+#   export PROJECT_NAME=<backend-image-project-name>
+#   export IMAGE_TAG=<git-sha-or-tag>
+#
+# Deploy:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# The frontend image is environment-independent; it reads its configuration
+# from ./.env at container start. Required there:
+#
+#   NUXT_INTERNAL_API_BASE_URL=http://backend:8000/api   # server-only, SSR
+#   NUXT_PUBLIC_MAPBOX_TOKEN=pk....                      # visible in devtools
+#   NUXT_PUBLIC_ABOUT_TAB_ENABLED=true
+#
+# Browser traffic never reaches Nuxt on /api: nginx terminates TLS and routes
+# / to the frontend and /api to the backend.
+
+services:
+  migrate:
+    image: ${HARBOR_REGISTRY}/fair-data/${PROJECT_NAME}:${IMAGE_TAG}
+    container_name: migrate
+    restart: "no"
+    env_file:
+      - ./.env
+    command: bash -c "pypgstac migrate && alembic upgrade head"
+
+  backend:
+    image: ${HARBOR_REGISTRY}/fair-data/${PROJECT_NAME}:${IMAGE_TAG}
+    container_name: backend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    image: ${HARBOR_REGISTRY}/fair-data-finder/frontend:${IMAGE_TAG:-latest}
+    container_name: frontend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    # Production CMD comes from the Dockerfile `run-prod` target:
+    #   node .output/server/index.mjs
