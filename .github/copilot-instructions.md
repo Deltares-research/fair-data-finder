@@ -16,7 +16,7 @@ docker-compose.yml ← orchestrates all services
 
 Services start in order: `postgres` → `migrate` (runs pypgstac + alembic) → `backend` (port 8000) → `frontend` (port 3000).
 
-The frontend proxies `/api/**` to the backend. The OpenAPI schema is fetched at build time (`API_URL + "/api/api"`) and used by `nuxt-open-fetch` to generate typed API client methods.
+In development a Nitro dev proxy forwards the browser's `/api` calls to the backend; in production nginx does that and Nuxt never sees them. Server-side rendering always addresses the backend directly via `runtimeConfig.internalApiBaseUrl`. `nuxt-open-fetch` generates typed API client methods from the committed `frontend/openapi/api.json` (refresh with `npm run schema:update`).
 
 ## General Editing Philosophy
 

@@ -141,7 +141,14 @@ class SSOAuthExtension(ApiExtension):
         if not frontend_url.startswith(('http://', 'https://')):
             _LOGGER.warning(f"frontend_url '{frontend_url}' is not absolute, redirect may fail")
         response = RedirectResponse(url=f"{frontend_url}/")
-        response.delete_cookie(key=COOKIE_NAME)
+        # Attributes must mirror set_cookie below, or the browser may keep the
+        # original cookie alongside the expired one.
+        response.delete_cookie(
+            key=COOKIE_NAME,
+            httponly=True,
+            samesite="lax",
+            secure=self.settings.cookie_secure,
+        )
         return response
 
     async def login_callback(self, request: Request, background_tasks: BackgroundTasks):
@@ -156,9 +163,17 @@ class SSOAuthExtension(ApiExtension):
             _LOGGER.warning(f"frontend_url '{frontend_url}' is not absolute, redirect may fail")
         response = RedirectResponse(url=f"{frontend_url}/")
         expiration, token = self.create_token(openid, APP_SECRET_KEY)
+        # httponly keeps the signed JWT out of reach of document.cookie, so an
+        # XSS cannot exfiltrate the session. samesite=lax still allows the
+        # top-level GET redirect that brings the user back from Microsoft.
         response.set_cookie(
-            key=COOKIE_NAME, value=token, expires=expiration
-        )  # This cookie will make sure /protected knows the user
+            key=COOKIE_NAME,
+            value=token,
+            expires=expiration,
+            httponly=True,
+            samesite="lax",
+            secure=self.settings.cookie_secure,
+        )
         background_tasks.add_task(add_user, openid)
         return response
 

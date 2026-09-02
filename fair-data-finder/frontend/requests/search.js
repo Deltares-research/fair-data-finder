@@ -1,7 +1,7 @@
 /**
  * Search API requests
  */
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 import searchBody from '@/utils/search/searchBody.js'
 
 /**
@@ -20,7 +20,6 @@ import searchBody from '@/utils/search/searchBody.js'
  */
 export async function searchItems(searchParams = {}) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const body = {
@@ -47,7 +46,6 @@ export async function searchItems(searchParams = {}) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     

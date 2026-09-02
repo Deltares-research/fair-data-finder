@@ -48,6 +48,9 @@ CMD [ "npm", "run", "dev" ]
 # Run
 FROM base-prod AS run-prod
 
+# ARG is scoped per stage, so PORT has to be redeclared here; without this
+# `ENV PORT=$PORT` expands to an empty string.
+ARG PORT=3000
 ENV PORT=$PORT
 
 COPY --from=build-prod /src/.output /src/.output

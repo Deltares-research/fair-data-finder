@@ -2,7 +2,12 @@
 
 Nuxt 4 application that serves the browser UI. Uses [Vuetify](https://vuetifyjs.com/) for components, [Pinia](https://pinia.vuejs.org/) for state, and [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/) for the map.
 
-The OpenAPI schema is fetched from the backend at build time (`API_URL + "/api/api"`) and used by `nuxt-open-fetch` to generate typed API client methods.
+`nuxt-open-fetch` generates the typed API client from `openapi/api.json`, which is committed to the repository. The build therefore needs no backend and no network access. Refresh the schema whenever the backend API changes:
+
+```bash
+npm run schema:update              # reads http://localhost:8000
+API_URL=http://host:8000 npm run schema:update
+```
 
 ## Environment setup
 
@@ -10,10 +15,13 @@ The OpenAPI schema is fetched from the backend at build time (`API_URL + "/api/a
 cp .env.example .env
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `API_URL` | Backend base URL. Use `http://localhost:8000` when running the frontend natively with `npm run dev`, or `http://backend:8000` inside Docker. |
-| `VITE_MAPBOX_TOKEN` | Mapbox public access token — required for the map to load. |
+The image contains no environment-specific values; all three variables are read when the process starts, so the same image can be promoted between environments. `NUXT_PUBLIC_*` values are serialised into the HTML payload and are readable in browser devtools — never put a secret in one.
+
+| Variable | Scope | Description |
+|----------|-------|-------------|
+| `NUXT_INTERNAL_API_BASE_URL` | Runtime, server-only | Where SSR reaches the backend. `http://localhost:8000/api` natively, `http://backend:8000/api` in Docker. In dev it is also the Nitro dev-proxy target for the browser's `/api` calls. |
+| `NUXT_PUBLIC_MAPBOX_TOKEN` | Runtime, public | Mapbox public access token (`pk.*`); the map will not load without it. Restrict it by URL in the Mapbox dashboard. |
+| `NUXT_PUBLIC_ABOUT_TAB_ENABLED` | Runtime, public | Shows the About tab. |
 
 ## Install dependencies
 

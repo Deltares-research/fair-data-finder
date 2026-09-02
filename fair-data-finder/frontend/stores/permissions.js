@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useRequestHeaders } from '#app'
 
 export const usePermissionsStore = defineStore('permissions', () => {
   // State
@@ -14,15 +13,11 @@ export const usePermissionsStore = defineStore('permissions', () => {
     error.value = null
     
     try {
-      // For SSR, we need to forward request headers to include cookies
-      const headers = process.server ? useRequestHeaders() : {}
-      
       const permissionData = await $api('/permissions', {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          ...headers, // Forward server-side headers (including cookies)
         },
       })      
       

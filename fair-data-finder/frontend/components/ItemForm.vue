@@ -767,7 +767,7 @@
   // Methods
   async function fetchCollections() {
     try {
-      const result = await fetchCollectionsWithCreatePermission({ includeHeaders: true })
+      const result = await fetchCollectionsWithCreatePermission()
       collections.value = result.collections
       collectionPermissions.value = result.permissions
     } catch (error) {

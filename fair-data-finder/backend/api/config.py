@@ -16,3 +16,6 @@ class APISettings(PgstacSettings):
     environment: str = "local"
     frontend_url: str = ""
     admin_users: Optional[str] = None
+    # Secure by default: a missing value must fail towards the safe behaviour.
+    # Only set COOKIE_SECURE=false for local dev served over plain HTTP.
+    cookie_secure: bool = True

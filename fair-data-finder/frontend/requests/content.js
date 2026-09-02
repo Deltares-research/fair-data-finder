@@ -1,33 +1,20 @@
 /**
  * Content API requests
  */
-import { useRequestHeaders } from '#app'
-
 /**
  * Fetch markdown content
  * @param {string} path - Path to the markdown file (e.g., 'stars4water/about.md')
  * @returns {Promise<string>} Markdown content as text
  */
 export async function fetchMarkdownContent(path) {
-  const headers = process.server ? useRequestHeaders() : {}
-  
   try {
-    // For local server routes, we use fetch directly since they're not in the open-fetch schema
-    // Use /content/ instead of /api/content/ to avoid proxy conflicts
-    const response = await fetch(`/content/${ path }`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'text/plain',
-        ...headers,
-      },
+    // $fetch rather than native fetch: this route is served by Nitro itself, and
+    // native fetch cannot resolve a relative URL during SSR. Uses /content/
+    // instead of /api/content/ to avoid proxy conflicts.
+    const content = await $fetch(`/content/${ path }`, {
+      responseType: 'text',
     })
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch content: ${ response.statusText }`)
-    }
-    
-    const content = await response.text()
+
     return content
   } catch (error) {
     console.error('Failed to fetch markdown content:', error?.message || error?.toString() || 'Unknown error')

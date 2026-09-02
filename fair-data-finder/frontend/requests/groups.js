@@ -2,7 +2,7 @@
  * Groups API requests
  * Centralized functions for all group-related API calls
  */
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 
 /**
  * Fetch all groups
@@ -10,7 +10,6 @@ import { useNuxtApp, useRequestHeaders } from '#app'
  */
 export async function fetchGroups() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const data = await $api('/groups', {
@@ -18,7 +17,6 @@ export async function fetchGroups() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -59,7 +57,6 @@ export async function fetchGroupById(groupId) {
  */
 export async function createGroup(groupData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/groups', {
@@ -68,7 +65,6 @@ export async function createGroup(groupData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -87,7 +83,6 @@ export async function createGroup(groupData) {
  */
 export async function updateGroup(groupId, groupData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/groups/{group_id}', {
@@ -99,7 +94,6 @@ export async function updateGroup(groupId, groupData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -117,7 +111,6 @@ export async function updateGroup(groupId, groupData) {
  */
 export async function deleteGroup(groupId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/groups/{group_id}', {
@@ -126,9 +119,6 @@ export async function deleteGroup(groupId) {
         group_id: groupId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Failed to delete group:', error?.message || error?.toString() || 'Unknown error')
@@ -144,7 +134,6 @@ export async function deleteGroup(groupId) {
  */
 export async function addUsersToGroup(groupId, emails) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/groups/{group_id}/members', {
@@ -156,7 +145,6 @@ export async function addUsersToGroup(groupId, emails) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
   } catch (error) {
@@ -173,7 +161,6 @@ export async function addUsersToGroup(groupId, emails) {
  */
 export async function removeUserFromGroup(groupId, userEmail) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/groups/{group_id}/members', {
@@ -185,9 +172,6 @@ export async function removeUserFromGroup(groupId, userEmail) {
         group_id: groupId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Failed to remove user from group:', error?.message || error?.toString() || 'Unknown error')
@@ -203,7 +187,6 @@ export async function removeUserFromGroup(groupId, userEmail) {
  */
 export async function addRoleToGroup(groupId, role) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/group-role', {
@@ -215,7 +198,6 @@ export async function addRoleToGroup(groupId, role) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
   } catch (error) {
@@ -232,7 +214,6 @@ export async function addRoleToGroup(groupId, role) {
  */
 export async function removeRoleFromGroup(groupId, role) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/group-role', {
@@ -242,9 +223,6 @@ export async function removeRoleFromGroup(groupId, role) {
         role: role,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Failed to remove role from group:', error?.message || error?.toString() || 'Unknown error')
@@ -258,7 +236,6 @@ export async function removeRoleFromGroup(groupId, role) {
  */
 export async function fetchUsers() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const users = await $api('/users', {
@@ -266,7 +243,6 @@ export async function fetchUsers() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     

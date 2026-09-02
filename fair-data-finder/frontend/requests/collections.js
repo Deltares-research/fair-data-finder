@@ -2,19 +2,17 @@
  * Collections API requests
  * Centralized functions for all collection-related API calls
  */
-import { useNuxtApp, useRequestHeaders } from '#app'
+import { useNuxtApp } from '#app'
 
 /**
  * Fetch all collections
  * @param {Object} options - Optional parameters
  * @param {number} options.limit - Limit number of results
- * @param {boolean} options.includeHeaders - Include SSR headers (default: true)
  * @returns {Promise<Object>} Collections data
  */
 export async function fetchCollections(options = {}) {
-  const { limit, includeHeaders = true } = options
+  const { limit } = options
   const { $api } = useNuxtApp()
-  const headers = includeHeaders && process.server ? useRequestHeaders() : {}
   
   try {
     const data = await $api('/collections', {
@@ -23,7 +21,6 @@ export async function fetchCollections(options = {}) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -59,12 +56,10 @@ export async function fetchCollectionById(collectionId) {
 
 /**
  * Fetch collection permissions
- * @param {boolean} includeHeaders - Include SSR headers (default: true)
  * @returns {Promise<Array>} Collection permissions array
  */
-export async function fetchCollectionPermissions(includeHeaders = true) {
+export async function fetchCollectionPermissions() {
   const { $api } = useNuxtApp()
-  const headers = includeHeaders && process.server ? useRequestHeaders() : {}
   
   try {
     const permissions = await $api('/collection-permissions', {
@@ -72,7 +67,6 @@ export async function fetchCollectionPermissions(includeHeaders = true) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -92,7 +86,7 @@ export async function fetchCollectionsWithCreatePermission(options = {}) {
   try {
     const [ collectionsData, permissionsData ] = await Promise.all([
       fetchCollections(options),
-      fetchCollectionPermissions(options.includeHeaders),
+      fetchCollectionPermissions(),
     ])
 
     const allCollections = collectionsData?.collections || []
@@ -123,7 +117,6 @@ export async function fetchCollectionsWithCreatePermission(options = {}) {
  */
 export async function createCollection(collectionData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/collections', {
@@ -132,7 +125,6 @@ export async function createCollection(collectionData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -151,7 +143,6 @@ export async function createCollection(collectionData) {
  */
 export async function updateCollection(collectionId, collectionData) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const result = await $api('/collections/{collection_id}', {
@@ -163,7 +154,6 @@ export async function updateCollection(collectionId, collectionData) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
@@ -181,7 +171,6 @@ export async function updateCollection(collectionId, collectionData) {
  */
 export async function deleteCollection(collectionId) {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     await $api('/collections/{collection_id}', {
@@ -190,9 +179,6 @@ export async function deleteCollection(collectionId) {
         collection_id: collectionId,
       },
       credentials: 'include',
-      headers: {
-        ...headers,
-      },
     })
   } catch (error) {
     console.error('Failed to delete collection:', error?.message || error?.toString() || 'Unknown error')
@@ -206,7 +192,6 @@ export async function deleteCollection(collectionId) {
  */
 export async function fetchFacilities() {
   const { $api } = useNuxtApp()
-  const headers = process.server ? useRequestHeaders() : {}
   
   try {
     const facilities = await $api('/facilities', {
@@ -214,7 +199,6 @@ export async function fetchFacilities() {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        ...headers,
       },
     })
     
