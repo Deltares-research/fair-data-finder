@@ -1,40 +1,6 @@
 # Local development stack (all services on one machine).
 
 services:
-  postgres:
-    image: postgis/postgis:18-master
-    container_name: postgres
-    ports:
-      - 5433:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - ./database/postgres/init-extensions.sql:/docker-entrypoint-initdb.d/01-init-extensions.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-
-  # Runs once before the backend starts.
-  # 
-  #   pypgstac migrate  -- installs / upgrades the pgstac schema
-  #   alembic upgrade head  -- applies app schema migrations (RBAC, keywords, ...)
-  migrate:
-    container_name: migrate
-    image: fair-data-finder/backend
-    build:
-      context: ./backend
-      target: production
-    env_file:
-      - ./backend/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: bash -c "pypgstac migrate && alembic upgrade head"
 
   backend:
     container_name: backend
@@ -54,9 +20,6 @@ services:
       - ./backend/scripts:/app/scripts
       - ./backend/pyproject.toml:/app/pyproject.toml
       - ./backend/uv.lock:/app/uv.lock
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
     command: uv run --no-dev fastapi dev api/app.py --host 0.0.0.0 --port 8000
 
   frontend:

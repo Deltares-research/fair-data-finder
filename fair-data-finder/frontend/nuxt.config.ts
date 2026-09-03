@@ -42,6 +42,11 @@ export default defineNuxtConfig({
     public: {
       aboutTabEnabled: false,
       mapboxToken: '',
+      // Opt-out flags: unset keeps the full Fair Data Finder behaviour.
+      // Disable per environment with NUXT_PUBLIC_AUTH_ENABLED=false etc.
+      authEnabled: true,
+      registerTabEnabled: true,
+      adminTabsEnabled: true,
     },
   },
 

@@ -21,7 +21,7 @@
   import { useNuxtApp, callOnce } from '#app'
 
   const nuxtApp = useNuxtApp()
-  const { isAuthenticated, isLoading, checkAuth } = useAuth()
+  const { authEnabled, isAuthenticated, isLoading, checkAuth } = useAuth()
 
   // Runs during SSR only; the resulting auth and permission state reaches the
   // client through the Nuxt payload, so hydration does not repeat /auth/me
@@ -29,7 +29,7 @@
   await callOnce('check-auth', () => checkAuth(nuxtApp.$api))
 
   const layoutName = computed(() => {
-    if (isAuthenticated.value) {
+    if (authEnabled.value && isAuthenticated.value) {
       return 'logged-in'
     }
     return 'default'

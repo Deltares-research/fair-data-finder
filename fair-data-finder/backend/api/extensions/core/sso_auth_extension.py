@@ -26,6 +26,33 @@ _LOGGER = logging.getLogger("uvicorn.default")
 COOKIE_NAME = "DMS_TOKEN"
 APP_SECRET_KEY: Optional[Key] = None
 
+#: Read-only endpoints that may be exposed without authentication when
+#: ``APISettings.public_read_enabled`` is set. Paths must match ``APIRoute.path``
+#: exactly. Verified against stac-fastapi 6.2.1 / stac-fastapi-pgstac 6.2.2.
+PUBLIC_READ_ENDPOINTS: List[Scope] = [
+    # Core STAC read endpoints
+    {"path": "/conformance", "method": "GET"},
+    {"path": "/search", "method": "GET"},
+    {"path": "/search", "method": "POST"},  # POST /search is a read in STAC
+    {"path": "/collections", "method": "GET"},
+    {"path": "/collections/{collection_id}", "method": "GET"},
+    {"path": "/collections/{collection_id}/items", "method": "GET"},
+    {"path": "/collections/{collection_id}/items/{item_id}", "method": "GET"},
+    # Filter extension. Only SearchFilterExtension is registered by this app, so
+    # there is no /collections/{collection_id}/queryables route.
+    {"path": "/queryables", "method": "GET"},
+    # Health checks
+    {"path": "/_mgmt/ping", "method": "GET"},
+    {"path": "/_mgmt/health", "method": "GET"},
+    # Keyword extension reads, used by the search filters
+    {"path": "/keywords", "method": "GET"},
+    {"path": "/keyword/{keyword_id}", "method": "GET"},
+    {"path": "/keywordgroups", "method": "GET"},
+    {"path": "/keywordgroup/{keywordgroup_id}", "method": "GET"},
+    {"path": "/facilities", "method": "GET"},
+    {"path": "/facility/{facility_id}", "method": "GET"},
+]
+
 
 class SSOAuthExtension(ApiExtension):
     """SSO Auth Extension.
@@ -45,6 +72,7 @@ class SSOAuthExtension(ApiExtension):
     settings: APISettings
     algorithm: str = "HS256"
     public_endpoints: List[Scope] = []
+    login_enabled: bool = True
 
     def __init__(
         self,
@@ -52,9 +80,11 @@ class SSOAuthExtension(ApiExtension):
         sso_client: SSOBase,
         algorithm: Optional[str] = None,
         public_endpoints: Optional[List[Scope]] = None,
+        login_enabled: bool = True,
     ):
         self.sso_client = sso_client
         self.settings = settings
+        self.login_enabled = login_enabled
         global APP_SECRET_KEY
         APP_SECRET_KEY = OctKey.import_key(settings.app_secret_key)
         if algorithm:
@@ -74,15 +104,19 @@ class SSOAuthExtension(ApiExtension):
                         of the environment variables.
         """
 
-        self.configure_auth(app)
+        if self.login_enabled:
+            self.configure_auth(app)
 
         extension_public_endpoints: List[Scope] = [
             {"path": "/", "method": "GET"},
-            {"path": "/auth/login", "method": "GET"},
-            {"path": "/auth/logout", "method": "GET"},
-            {"path": "/auth/callback", "method": "GET"},
-            {"path": "/auth/me", "method": "GET"},
         ]
+        if self.login_enabled:
+            extension_public_endpoints += [
+                {"path": "/auth/login", "method": "GET"},
+                {"path": "/auth/logout", "method": "GET"},
+                {"path": "/auth/callback", "method": "GET"},
+                {"path": "/auth/me", "method": "GET"},
+            ]
 
         all_public_endpoints = self.public_endpoints + extension_public_endpoints
 
@@ -97,7 +131,12 @@ class SSOAuthExtension(ApiExtension):
                             [Depends(self.get_logged_user)],
                         )
 
-        _LOGGER.info("SSO authentication enabled.")
+        _LOGGER.info(
+            "SSO authentication enabled."
+            if self.login_enabled
+            else "SSO authentication enforced without login endpoints "
+            "(AUTH_ENABLED=false)."
+        )
 
     @staticmethod
     def get_logged_user(

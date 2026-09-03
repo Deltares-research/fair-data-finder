@@ -13,3 +13,4 @@ scripts/stac_output/**
 
 # Caddy proxy state and auto-generated certs
 fair-data-finder/proxy/data/
+metadata_s4w/**

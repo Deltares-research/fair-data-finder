@@ -56,13 +56,18 @@ def parse_args() -> tuple[Config, bool]:
     )
     parser.add_argument(
         "--source-url",
-        default="https://deltares-fairdata.com/api",
+        default="https://devs4w.deltares-fairdata.com/api",
         help="Source STAC API base URL",
     )
     parser.add_argument(
         "--database-url",
-        default="postgresql://postgres:password@localhost:5432/stac",
-        help="pgSTAC PostgreSQL connection string",
+        default="postgresql://postgres:postgres@postgres:5432/postgres",
+        help=(
+            "pgSTAC PostgreSQL connection string, e.g. "
+            "postgresql://<user>:<password>@<host>:<port>/<dbname>. "
+            "Use host 'postgres' when running via `docker compose exec backend`, "
+            "or 'localhost:5433' when running from the host machine."
+        ),
     )
     parser.add_argument(
         "--dms-token",

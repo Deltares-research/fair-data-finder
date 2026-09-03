@@ -50,7 +50,7 @@ dms_settings = APISettings(
     azure_tenant_id="",
     app_domain="",
     app_secret_key="",
-    db_connection_url=f"sqlite:////{DATA_DIR}/test.db",
+    db_connection_url=f"sqlite:///{DATA_DIR}/test.db",
     environment="test",
 )
 

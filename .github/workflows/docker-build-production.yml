@@ -1,13 +1,14 @@
 name: Build and Push Production Images
 
 # Builds the backend and frontend Docker images and pushes them to the
-# registry, tagged with the published release's version, whenever a
-# GitHub Release is published.
+# registry, tagged with the version from pyproject.toml and "latest",
+# whenever changes are pushed to main.
 
 on:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 env:
   REGISTRY_ADDRESS: containers.deltares.nl
@@ -24,21 +25,20 @@ jobs:
             context: fair-data-finder/backend
             file: fair-data-finder/backend/Dockerfile
             target: production
-            image: backend
+            image: backend-stars4water
           - service: frontend
             context: fair-data-finder/frontend
             file: fair-data-finder/frontend/dockerfile
             target: run-prod
-            image: frontend
+            image: frontend-stars4water
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Determine version from release tag
-        id: version
+      - name: Extract metadata
+        id: meta
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-          VERSION="${TAG#v}"
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' fair-data-finder/backend/pyproject.toml | head -n1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -58,4 +58,6 @@ jobs:
           file: ${{ matrix.file }}
           target: ${{ matrix.target }}
           push: true
-          tags: ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:${{ steps.version.outputs.version }}
+          tags: |
+            ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY_ADDRESS }}/${{ env.HARBOR_PROJECT }}/${{ matrix.image }}:latest

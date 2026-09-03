@@ -16,6 +16,12 @@ class APISettings(PgstacSettings):
     environment: str = "local"
     frontend_url: str = ""
     admin_users: Optional[str] = None
+    # Register the SSO auth extension. Disable for a deployment that has no
+    # login at all; the AZURE_* variables are then unused.
+    auth_enabled: bool = True
+    # Expose the STAC read endpoints without an authentication cookie.
+    # Write endpoints remain protected by RBAC regardless of this setting.
+    public_read_enabled: bool = False
     # Secure by default: a missing value must fail towards the safe behaviour.
     # Only set COOKIE_SECURE=false for local dev served over plain HTTP.
     cookie_secure: bool = True

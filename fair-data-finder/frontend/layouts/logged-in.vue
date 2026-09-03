@@ -10,25 +10,25 @@
           Search
         </v-tab>
         <v-tab
-          v-if="isAuthenticated"
+          v-if="configStore.registerTabEnabled && isAuthenticated"
           to="/register"
         >
           Register
         </v-tab>
         <v-tab
-          v-if="hasPermission('collection:create')"
+          v-if="configStore.adminTabsEnabled && hasPermission('collection:create')"
           to="/domains"
         >
           Domains
         </v-tab>
         <v-tab 
-          v-if="hasPermission('keyword:all')"
+          v-if="configStore.adminTabsEnabled && hasPermission('keyword:all')"
           to="/keywords"
         >
           Keywords
         </v-tab>
         <v-tab
-          v-if="hasPermission('group:read')"
+          v-if="configStore.adminTabsEnabled && hasPermission('group:read')"
           to="/groups"
         >
           Groups
@@ -58,7 +58,7 @@
           Logout
         </v-btn>
       </div>
-      <div v-else>
+      <div v-else-if="configStore.authEnabled">
         <v-btn
           :loading="isLoading"
           color="primary"
