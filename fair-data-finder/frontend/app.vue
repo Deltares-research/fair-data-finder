@@ -11,7 +11,10 @@
     />
   </div>
   <NuxtLayout v-else :name="layoutName">
-    <NuxtPage />
+    <!-- Keeps the Search page (and its Mapbox map) alive in memory when
+         navigating to other tabs, instead of destroying/recreating the map
+         on every visit. Other pages are unaffected and unmount as normal. -->
+    <NuxtPage :keepalive="{ include: ['index'] }" />
   </NuxtLayout>
 </template>
 

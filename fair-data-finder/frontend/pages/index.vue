@@ -145,7 +145,12 @@
   </v-container>
 </template>
 
-<script setup>
+  <script setup>
+  // Named so <NuxtPage :keepalive="{ include: ['index'] }"> in app.vue can
+  // match this page and keep it (and its Mapbox map) alive across navigation
+  // instead of destroying/recreating it on every visit.
+  defineOptions({ name: 'index' })
+
   import { computed, watch, ref } from 'vue'
   import { useSearchPageStore } from '~/stores/searchPage'
   import { useRoute } from 'vue-router'
