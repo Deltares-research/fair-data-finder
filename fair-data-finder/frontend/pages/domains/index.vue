@@ -108,8 +108,8 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
+  import { ref, computed } from 'vue'
+  import { useRouter } from 'vue-router'
   import { useDomainsStore } from '~/stores/domains'
   import { fetchFacilities } from '~/requests/collections'
 
@@ -120,7 +120,6 @@
 
   // Router
   const router = useRouter()
-  const route = useRoute()
 
   // Store
   const store = useDomainsStore()
@@ -205,29 +204,17 @@
     router.push(`/domains/${item.id}/delete`)
   }
 
-  // Fetch items on mount
-  onMounted(async () => {
-    await Promise.all([
-      store.fetchDomains(),
-      fetchFacilities().then(data => {
-        facilities.value = data || []
-      }).catch(err => {
-        console.error('Failed to fetch facilities:', err)
-        facilities.value = []
-      })
-    ])
+  // Fetch items on mount. If domains were already loaded on a previous visit
+  // (the Pinia store persists across navigation), show the cached data
+  // immediately and refresh it silently in the background instead of
+  // blanking the table behind a spinner every time this tab is revisited.
+  store.fetchDomains({ silent: store.hasLoaded })
+  fetchFacilities().then(data => {
+    facilities.value = data || []
+  }).catch(err => {
+    console.error('Failed to fetch facilities:', err)
+    facilities.value = []
   })
-
-  // Watch the route path to refresh data
-  watch(
-    () => route.path,
-    (newPath, oldPath) => {
-      if (newPath === '/domains' && oldPath && oldPath !== '/domains') {
-        store.fetchDomains()
-      }
-    },
-    { immediate: false }
-  )
 </script>
 
 <style scoped>

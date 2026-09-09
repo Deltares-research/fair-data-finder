@@ -103,8 +103,8 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
+  import { ref, computed } from 'vue'
+  import { useRouter } from 'vue-router'
   import { useGroupsStore } from '~/stores/groups'
 
   // Component name for Vue linting
@@ -114,7 +114,6 @@
 
   // Router
   const router = useRouter()
-  const route = useRoute()
 
   // Store
   const store = useGroupsStore()
@@ -160,21 +159,11 @@
     router.push(`/groups/${item.id}/delete`)
   }
 
-  // Fetch items on mount
-  onMounted(async () => {
-    await store.fetchGroupsList()
-  })
-
-  // Watch the route path to refresh data
-  watch(
-    () => route.path,
-    (newPath, oldPath) => {
-      if (newPath === '/groups' && oldPath && oldPath !== '/groups') {
-        store.fetchGroupsList()
-      }
-    },
-    { immediate: false }
-  )
+  // Fetch items on mount. If groups were already loaded on a previous visit
+  // (the Pinia store persists across navigation), show the cached data
+  // immediately and refresh it silently in the background instead of
+  // blanking the table behind a spinner every time this tab is revisited.
+  store.fetchGroupsList({ silent: store.hasLoaded })
 </script>
 
 <style scoped>

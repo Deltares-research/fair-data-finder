@@ -206,6 +206,7 @@
   import { useNuxtApp } from '#app'
   import { fetchCollectionById, updateCollection, fetchFacilities } from '~/requests/collections'
   import { fetchGroups } from '~/requests/groups'
+  import { useDomainsStore } from '~/stores/domains'
 
   defineOptions({
     name: 'DomainsEditPage'
@@ -215,6 +216,7 @@
   const router = useRouter()
   const { $api } = useNuxtApp()
   const domainId = route.params.id
+  const domainsStore = useDomainsStore()
 
   // State
   const collection = ref(null)
@@ -352,7 +354,11 @@
       }
 
       await updateCollection(domainId, collectionData)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Reflect the update in the domains list immediately so navigating
+      // back doesn't wait on a fresh fetch to show it.
+      domainsStore.upsertCollection(collectionData)
+
       // Navigate to domains page after successful update
       await router.push('/domains')
     } catch (err) {
@@ -363,10 +369,24 @@
     }
   }
 
-  // Fetch domain on mount
+  // Fetch domain on mount. The domains list already holds full collection
+  // objects (from fetchCollections), so if the one being edited is cached,
+  // render the form instantly from it and reconcile with the server in the
+  // background instead of blocking the whole form behind a spinner.
   onMounted(async () => {
-    isLoading.value = true
+    const cachedCollection = domainsStore.collections.find(existing => existing.id === domainId)
+
     error.value = null
+    isLoading.value = !cachedCollection
+
+    if (cachedCollection) {
+      collection.value = cachedCollection
+      formData.value = {
+        title: cachedCollection.title || cachedCollection.id || '',
+        description: cachedCollection.description || '',
+        keywordsFacility: cachedCollection.links?.find(item => item.rel === 'keywords')?.id || 'No keywords'
+      }
+    }
 
     try {
       const [collectionData, facilitiesData] = await Promise.all([
@@ -390,7 +410,11 @@
         loadPermissions()
       ])
     } catch (err) {
-      error.value = err?.message || 'Failed to load domain'
+      // If we already rendered from cache, don't blank the form on a
+      // background reconciliation failure — just log it.
+      if (!cachedCollection) {
+        error.value = err?.message || 'Failed to load domain'
+      }
       console.error('Error loading domain:', err)
     } finally {
       isLoading.value = false

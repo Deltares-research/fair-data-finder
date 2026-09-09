@@ -133,8 +133,8 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
+  import { ref, computed } from 'vue'
+  import { useRouter } from 'vue-router'
   import dateFormat from 'dateformat'
   import { useRegisterStore } from '~/stores/register'
 
@@ -145,7 +145,6 @@
 
   // Router
   const router = useRouter()
-  const route = useRoute()  // Add this
 
   // Store
   const store = useRegisterStore()
@@ -249,23 +248,11 @@
     router.push(`/register/${item.id}/delete`)
   }
 
-  // Fetch items on mount
-  onMounted(async () => {
-    await store.fetchItems()
-    console.log('Component mounted, current path:', route.path)
-  })
-
-  // Watch the route path directly (more reliable)
-  watch(
-    () => route.path,
-    (newPath, oldPath) => {
-      if (newPath === '/register' && oldPath && oldPath !== '/register') {
-        console.log('Navigated to /register, refreshing data')
-        store.fetchItems()
-      }
-    },
-    { immediate: false }  // Don't run on initial mount
-  )
+  // Fetch items on mount. If the list was already loaded on a previous visit
+  // (the Pinia store persists across navigation), show the cached data
+  // immediately and refresh it silently in the background instead of
+  // blanking the table behind a spinner every time this tab is revisited.
+  store.fetchItems(null, { silent: store.hasLoaded })
 </script>
 
 <style scoped>

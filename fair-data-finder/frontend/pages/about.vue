@@ -8,13 +8,9 @@
           lg="8"
         >
           <div
-            v-if="renderedMarkdown"
             class="about-content"
             v-html="renderedMarkdown"
           />
-          <div v-else>
-            Loading...
-          </div>
         </v-col>
       </v-row>
     </v-container>
@@ -36,9 +32,7 @@
   const markdownContent = await fetchMarkdownContent('stars4water/about.md')
 
   // Render the markdown to HTML
-  const renderedMarkdown = computed(() => 
-    markdownContent ? md.render(markdownContent) : ''
-  )
+  const renderedMarkdown = computed(() => md.render(markdownContent || ''))
 </script>
 
 <style>

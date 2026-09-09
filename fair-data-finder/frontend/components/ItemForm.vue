@@ -620,6 +620,9 @@
   import { fetchItemById, createItem, updateItem } from '~/requests/items'
   import { parseAndValidateCoordinates, createGeometryFromCoordinates as createGeometry } from '~/utils/helpers'
   import buildGeoJsonLayer from '~/utils/build-geojson-layer'
+  import { useRegisterStore } from '~/stores/register'
+
+  const registerStore = useRegisterStore()
 
   const props = defineProps({
     mode: {
@@ -981,8 +984,10 @@
         await createItem(formData.value.collection, itemData)
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      // Reflect the change in the register list immediately so navigating
+      // back doesn't wait on a fresh fetch to show it.
+      registerStore.upsertItem(itemData)
+
       // Navigate to register page
       await router.push('/register')
     } catch (error) {
@@ -993,80 +998,101 @@
     }
   }
 
+  // Populates the form from a STAC item. Used both for the authoritative
+  // fetch and for an instant cache-hit render (see onMounted below).
+  function applyItemToForm(item) {
+    formData.value = {
+      collection: item.collection || null,
+      properties: {
+        projectNumber: item.properties?.projectNumber || '',
+        title: item.properties?.title || '',
+        publication_datetime: item.properties?.publication_datetime || null,
+        description: item.properties?.description || '',
+        language: item.properties?.language || 'eng',
+        legalRestrictions: item.properties?.legalRestrictions || 'license',
+        restrictionsOfUse: item.properties?.restrictionsOfUse || '',
+        spatialReferenceSystem: item.properties?.spatialReferenceSystem || 'not applicable',
+        spatialReferenceSystemCustom: item.properties?.spatialReferenceSystemCustom || '',
+        dataQualityInfoStatement: item.properties?.dataQualityInfoStatement || '',
+        originatorDataOrganisation: item.properties?.originatorDataOrganisation || 'Deltares',
+        originatorDataEmail: item.properties?.originatorDataEmail || '',
+        originatorMetaDataOrganisation: item.properties?.originatorMetaDataOrganisation || 'Deltares',
+        originatorMetaDataEmail: item.properties?.originatorMetaDataEmail || '',
+        facility_type: item.properties?.facility_type || '',
+        datetime: item.properties?.datetime || null,
+        start_datetime: item.properties?.start_datetime || null,
+        end_datetime: item.properties?.end_datetime || null,
+      },
+      assets: item.assets ? { ...item.assets } : {},
+      geometry: item.geometry || null,
+    }
+
+    // Calculate zoom bounds once from initial geometry
+    if (formData.value.geometry) {
+      try {
+        const calculatedBbox = bbox(formData.value.geometry)
+        zoomBounds.value = Array.isArray(calculatedBbox) && calculatedBbox.length >= 4 ? calculatedBbox : []
+      } catch (error) {
+        console.error('Error calculating bbox:', error)
+        zoomBounds.value = []
+      }
+    }
+
+    // Initialize dates
+    if (item.properties?.start_datetime && item.properties?.end_datetime) {
+      tempStartDate.value = item.properties.start_datetime.split('T')[0]
+      tempEndDate.value = item.properties.end_datetime.split('T')[0]
+    } else if (item.properties?.datetime) {
+      tempStartDate.value = item.properties.datetime.split('T')[0]
+      tempEndDate.value = null
+    }
+
+    // Initialize keywords and facility type
+    if (item.properties?.keywords && Array.isArray(item.properties.keywords)) {
+      selectedKeywords.value = [...item.properties.keywords]
+    }
+    if (item.properties?.facility_type) {
+      selectedFacilityType.value = item.properties.facility_type
+    }
+  }
+
   // Initialize
   onMounted(async () => {
     if (props.mode === 'edit') {
-      // Edit mode: fetch item and collections in parallel
-      isLoading.value = true
+      // The register list already holds full STAC items (from search), so
+      // if the one being edited is cached, render the form instantly from
+      // it and reconcile with the server in the background instead of
+      // blocking the whole form behind a spinner every time.
+      const cachedItem = registerStore.items.find(existing => existing.id === props.itemId)
+
       error.value = null
-    
+      isLoading.value = !cachedItem
+
+      if (cachedItem) {
+        applyItemToForm(cachedItem)
+        if (formData.value.collection) {
+          await fetchKeywords()
+        }
+      }
+
       try {
         const [item] = await Promise.all([
           fetchItemById(props.itemId),
           fetchCollections(),
         ])
-      
-        // Populate formData from item
-        formData.value = {
-          collection: item.collection || null,
-          properties: {
-            projectNumber: item.properties?.projectNumber || '',
-            title: item.properties?.title || '',
-            publication_datetime: item.properties?.publication_datetime || null,
-            description: item.properties?.description || '',
-            language: item.properties?.language || 'eng',
-            legalRestrictions: item.properties?.legalRestrictions || 'license',
-            restrictionsOfUse: item.properties?.restrictionsOfUse || '',
-            spatialReferenceSystem: item.properties?.spatialReferenceSystem || 'not applicable',
-            spatialReferenceSystemCustom: item.properties?.spatialReferenceSystemCustom || '',
-            dataQualityInfoStatement: item.properties?.dataQualityInfoStatement || '',
-            originatorDataOrganisation: item.properties?.originatorDataOrganisation || 'Deltares',
-            originatorDataEmail: item.properties?.originatorDataEmail || '',
-            originatorMetaDataOrganisation: item.properties?.originatorMetaDataOrganisation || 'Deltares',
-            originatorMetaDataEmail: item.properties?.originatorMetaDataEmail || '',
-            facility_type: item.properties?.facility_type || '',
-            datetime: item.properties?.datetime || null,
-            start_datetime: item.properties?.start_datetime || null,
-            end_datetime: item.properties?.end_datetime || null,
-          },
-          assets: item.assets ? { ...item.assets } : {},
-          geometry: item.geometry || null,
-        }
-      
-        // Calculate zoom bounds once from initial geometry
-        if (formData.value.geometry) {
-          try {
-            const calculatedBbox = bbox(formData.value.geometry)
-            zoomBounds.value = Array.isArray(calculatedBbox) && calculatedBbox.length >= 4 ? calculatedBbox : []
-          } catch (error) {
-            console.error('Error calculating bbox:', error)
-            zoomBounds.value = []
-          }
-        }
-      
-        // Initialize dates
-        if (item.properties?.start_datetime && item.properties?.end_datetime) {
-          tempStartDate.value = item.properties.start_datetime.split('T')[0]
-          tempEndDate.value = item.properties.end_datetime.split('T')[0]
-        } else if (item.properties?.datetime) {
-          tempStartDate.value = item.properties.datetime.split('T')[0]
-          tempEndDate.value = null
-        }
-      
-        // Initialize keywords and facility type
-        if (item.properties?.keywords && Array.isArray(item.properties.keywords)) {
-          selectedKeywords.value = [...item.properties.keywords]
-        }
-        if (item.properties?.facility_type) {
-          selectedFacilityType.value = item.properties.facility_type
-        }
-      
+
+        applyItemToForm(item)
+
         // Fetch keywords for the collection
         if (formData.value.collection) {
           await fetchKeywords()
         }
       } catch (err) {
-        error.value = err.message || 'Failed to load item'
+        // If we already rendered from cache, don't blank the form on a
+        // background reconciliation failure — just log it.
+        if (!cachedItem) {
+          error.value = err.message || 'Failed to load item'
+        }
         console.error('Error loading item:', err)
       } finally {
         isLoading.value = false

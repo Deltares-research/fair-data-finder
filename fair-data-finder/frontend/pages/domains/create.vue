@@ -137,6 +137,7 @@
   import { useNuxtApp } from '#app'
   import { createCollection, fetchFacilities } from '~/requests/collections'
   import { fetchGroups } from '~/requests/groups'
+  import { useDomainsStore } from '~/stores/domains'
 
   defineOptions({
     name: 'DomainsCreatePage'
@@ -144,6 +145,7 @@
 
   const router = useRouter()
   const { $api } = useNuxtApp()
+  const domainsStore = useDomainsStore()
 
   // State
   const formData = ref({
@@ -282,8 +284,10 @@
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      // Reflect the new domain in the list immediately so navigating back
+      // doesn't wait on a fresh fetch to show it.
+      domainsStore.upsertCollection({ ...collectionData, id: collectionId })
+
       await router.push('/domains')
       
     } catch (err) {

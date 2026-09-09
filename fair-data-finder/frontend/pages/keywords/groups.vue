@@ -152,14 +152,20 @@
     error.value = null
     
     try {
-      await createKeywordGroup(formData.value)
+      const created = await createKeywordGroup(formData.value)
       successMessage.value = 'Keyword group created'
       formData.value = {
         group_name_nl: '',
         group_name_en: '',
         facility_type: ''
       }
-      await loadKeywordGroups()
+      // Reflect the new group in the list immediately instead of
+      // re-fetching the whole list and flashing it empty in between.
+      if (created?.id) {
+        keywordGroups.value = [created, ...keywordGroups.value]
+      } else {
+        await loadKeywordGroups()
+      }
     } catch (err) {
       error.value = err?.data?.detail || err?.message || 'Failed to create keyword group'
     } finally {

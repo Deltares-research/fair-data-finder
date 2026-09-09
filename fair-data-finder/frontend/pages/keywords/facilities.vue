@@ -118,10 +118,16 @@
     error.value = null
     
     try {
-      await createFacility({ name: formData.value.name })
+      const created = await createFacility({ name: formData.value.name })
       successMessage.value = 'Domain created'
       formData.value.name = ''
-      await loadFacilities()
+      // Reflect the new facility in the list immediately instead of
+      // re-fetching the whole list and flashing it empty in between.
+      if (created?.id) {
+        facilities.value = [created, ...facilities.value]
+      } else {
+        await loadFacilities()
+      }
     } catch (err) {
       error.value = err?.data?.detail || err?.message || 'Failed to create domain'
     } finally {

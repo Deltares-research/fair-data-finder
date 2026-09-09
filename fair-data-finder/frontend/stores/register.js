@@ -13,6 +13,10 @@ export const useRegisterStore = defineStore('register', () => {
   const totalMatched = ref(0)
   const isLoading = ref(false)
   const error = ref(null)
+  // True once the first fetch has completed, so subsequent visits to the
+  // register list can show cached data immediately and refresh silently
+  // instead of blocking the whole table behind a spinner again.
+  const hasLoaded = ref(false)
 
   // Computed
   const totalPages = computed(() => {
@@ -29,8 +33,12 @@ export const useRegisterStore = defineStore('register', () => {
   })
 
   // Actions
-  async function fetchItems(token = null) {
-    isLoading.value = true
+  // `silent` skips the isLoading toggle so a background refresh (e.g. when
+  // revisiting the page with data already cached) doesn't blank the table.
+  async function fetchItems(token = null, { silent = false } = {}) {
+    if (!silent) {
+      isLoading.value = true
+    }
     error.value = null
 
     try {
@@ -77,16 +85,38 @@ export const useRegisterStore = defineStore('register', () => {
         prevToken.value = null
       }
 
+      hasLoaded.value = true
       return true
 
     } catch (err) {
       console.error('Failed to fetch items:', err?.message || err?.toString() || 'Unknown error')
-      error.value = err?.message || 'Failed to fetch items'
-      items.value = []
-      totalMatched.value = 0
+      // Keep any already-cached items visible on a silent background
+      // refresh failure instead of wiping the table out from under the user.
+      if (!silent) {
+        error.value = err?.message || 'Failed to fetch items'
+        items.value = []
+        totalMatched.value = 0
+      }
       return false
     } finally {
-      isLoading.value = false
+      if (!silent) {
+        isLoading.value = false
+      }
+    }
+  }
+
+  // Optimistically reflect a create/update in the cached list so navigating
+  // back to the register page shows it instantly, without waiting on a
+  // fresh fetch. A background refresh (see fetchItems' silent mode) still
+  // reconciles with the server shortly after.
+  function upsertItem(item) {
+    if (!item?.id) return
+    const index = items.value.findIndex(existing => existing.id === item.id)
+    if (index >= 0) {
+      items.value[index] = item
+    } else if (currentPage.value === 1) {
+      items.value = [ item, ...items.value ]
+      totalMatched.value += 1
     }
   }
 
@@ -183,6 +213,7 @@ export const useRegisterStore = defineStore('register', () => {
     totalMatched,
     isLoading,
     error,
+    hasLoaded,
     
     // Computed
     totalPages,
@@ -191,6 +222,7 @@ export const useRegisterStore = defineStore('register', () => {
     
     // Actions
     fetchItems,
+    upsertItem,
     nextPage,
     previousPage,
     goToPage,
