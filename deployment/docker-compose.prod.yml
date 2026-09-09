@@ -2,7 +2,8 @@
 #
 # Required environment variables (set in your shell before running):
 #   export HARBOR_REGISTRY=<registry-host>
-#   export PROJECT_NAME=<backend-image-project-name>
+#   export BACKEND_FOLDER=<backend-image-name>
+#   export FRONTEND_FOLDER=<frontend-image-name>
 #   export IMAGE_TAG=<git-sha-or-tag>
 #
 # Deploy:
@@ -21,7 +22,7 @@
 
 services:
   migrate:
-    image: ${HARBOR_REGISTRY}/fair-data/${PROJECT_NAME}:${IMAGE_TAG}
+    image: ${HARBOR_REGISTRY}/fair-data/${BACKEND_FOLDER}:${IMAGE_TAG}
     container_name: migrate
     restart: "no"
     env_file:
@@ -29,7 +30,7 @@ services:
     command: bash -c "pypgstac migrate && alembic upgrade head"
 
   backend:
-    image: ${HARBOR_REGISTRY}/fair-data/${PROJECT_NAME}:${IMAGE_TAG}
+    image: ${HARBOR_REGISTRY}/fair-data/${BACKEND_FOLDER}:${IMAGE_TAG}
     container_name: backend
     restart: unless-stopped
     env_file:
@@ -41,7 +42,7 @@ services:
         condition: service_completed_successfully
 
   frontend:
-    image: ${HARBOR_REGISTRY}/fair-data-finder/frontend:${IMAGE_TAG:-latest}
+    image: ${HARBOR_REGISTRY}/fair-data/${FRONTEND_FOLDER}:${IMAGE_TAG}
     container_name: frontend
     restart: unless-stopped
     env_file:

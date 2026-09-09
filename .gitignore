@@ -1,8 +1,5 @@
 __pycache__/
 .env
-.env.local
-.env.server
-
 
 node_modules
 # Scripts input data
@@ -13,3 +10,6 @@ scripts/stac_output/**
 
 # Caddy proxy state and auto-generated certs
 fair-data-finder/proxy/data/
+
+# Local production session token - never commit
+.dms_token

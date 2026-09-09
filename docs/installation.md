@@ -4,6 +4,21 @@
 
 - [Docker](https://docs.docker.com/get-docker/)
 
+## Windows quick start (one-shot dev script)
+
+From the repo root, run:
+
+```powershell
+.\dev-start.ps1
+```
+
+This prompts for your DMS token and the STAC domain to pull data from (e.g.
+`https://deltares-fairdata.com`) — nothing is cached to disk — then runs
+`docker compose up --build -d`, waits for the backend health check, and populates the
+local database via `migrate_to_pgstac.py`. See
+[Migrating Production Data to Local pgSTAC](guides/data-migration.md) for details on
+what the population step does.
+
 ## Start the full stack
 
 ```bash
