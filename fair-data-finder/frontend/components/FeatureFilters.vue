@@ -82,6 +82,7 @@
                 clearable
                 hide-details
                 class="filter-autocomplete"
+                :menu-props="{ contentClass: 'v-autocomplete__content domain-menu-content' }"
                 @update:model-value="handleCollectionChange"
               >
                 <template #item="{ props: itemProps, item }">
@@ -126,6 +127,7 @@
                 clearable
                 hide-details
                 class="filter-autocomplete"
+                :menu-props="{ contentClass: 'v-autocomplete__content keyword-menu-content' }"
                 @update:model-value="handleKeywordChange"
               >
                 <template #item="{ props: itemProps, item }">
@@ -524,6 +526,23 @@
 /* Simple styling for all autocomplete fields - keep them consistent */
 .filter-autocomplete {
   width: 100%;
+}
+
+/* The Domain and Keyword autocompletes' dropdown lists are internally
+   virtualized by Vuetify once there are enough items to trigger
+   virtual-scroll rendering, which breaks the normal "match the activator
+   width" sizing: the overlay's width ends up unconstrained and can grow to
+   fill almost the whole viewport (only reliably reproduced with production-
+   sized item lists, e.g. in production builds). Forcing an explicit pixel
+   width avoids that broken auto-sizing. These styles must be global (not
+   scoped) because Vuetify teleports the dropdown content to the end of
+   <body>, outside this component's DOM. content-class alone is silently
+   ignored by VAutocomplete (it hardcodes its own contentClass on the
+   internal VMenu after menuProps is merged), so the class is applied via
+   :menu-props="{ contentClass: '...' }" instead. */
+:global(.domain-menu-content),
+:global(.keyword-menu-content) {
+  width: 320px !important;
 }
 
 .filter-selection-text {

@@ -101,3 +101,17 @@
     logout()
   }
 </script>
+
+<style scoped>
+/* Vuetify computes v-main's top offset (--v-layout-top) once the app-bar
+   registers with the client-side layout system, but during SSR it renders
+   as 0px. That gap makes page content render flush under the app bar and
+   then jump down as soon as the client corrects it. The app bar here is a
+   single fixed-height (64px) row, so pin the fallback to that value; an
+   author-stylesheet !important declaration beats Vuetify's non-important
+   inline style, and is a no-op once hydration sets the same real value.
+*/
+.v-main {
+  --v-layout-top: 64px !important;
+}
+</style>
