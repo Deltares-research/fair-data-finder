@@ -52,6 +52,7 @@
         <v-card v-else-if="collection">
           <v-tabs
             v-model="activeTab"
+            color="primary"
             class="mb-4"
           >
             <v-tab value="collection">

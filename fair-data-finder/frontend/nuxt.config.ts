@@ -7,7 +7,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  css: ['mapbox-gl/dist/mapbox-gl.css'],
+  css: [
+    'mapbox-gl/dist/mapbox-gl.css',
+    '~/assets/css/app.css',
+  ],
   build: {
     transpile: ['vuetify'],
   },
@@ -42,6 +45,32 @@ export default defineNuxtConfig({
     public: {
       aboutTabEnabled: false,
       mapboxToken: '',
+
+      // Branding shown in the app bar logo. Override per environment with
+      // NUXT_PUBLIC_BRANDING_APP_NAME, NUXT_PUBLIC_BRANDING_TAGLINE and
+      // NUXT_PUBLIC_BRANDING_LOGO_URL (path/URL to a custom logo image;
+      // leave empty to use the built-in icon).
+      branding: {
+        appName: 'Fair Data Finder',
+        tagline: 'Discover · Share · Reuse',
+        logoUrl: '',
+      },
+
+      // Vuetify theme colors. Override per environment with
+      // NUXT_PUBLIC_THEME_PRIMARY, NUXT_PUBLIC_THEME_SECONDARY, etc.
+      theme: {
+        primary: '#2563EB',
+        secondary: '#0F766E',
+        background: '#F8FAFC',
+        surface: '#FFFFFF',
+        info: '#0284C7',
+        success: '#16A34A',
+        warning: '#D97706',
+        error: '#DC2626',
+        onBackground: '#111827',
+        onSurface: '#111827',
+        outline: '#E2E8F0',
+      },
     },
   },
 
