@@ -1,8 +1,10 @@
 <template>
   <v-app>
     <v-app-bar>
+      <AppLogo class="ms-4 me-6" />
       <v-tabs
         align-tabs="start"
+        color="primary"
       >
         <v-tab
           to="/"

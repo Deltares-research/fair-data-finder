@@ -52,7 +52,7 @@
             <code class="text-black">{{ group.name }}</code>
           </p>
 
-          <v-tabs v-model="activeTab" class="mb-4">
+          <v-tabs v-model="activeTab" color="primary" class="mb-4">
             <v-tab value="members">
               Members
             </v-tab>

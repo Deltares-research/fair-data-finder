@@ -50,7 +50,7 @@
                       class="flex-grow-1"
                       @click:clear="queryInput = ''; applyQuery()"
                     />
-                    <v-btn type="submit">
+                    <v-btn type="submit" color="primary" variant="flat">
                       Search
                     </v-btn>
                   </div>

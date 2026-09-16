@@ -205,7 +205,7 @@
                         <v-btn variant="text" @click="startMenu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="flat" @click="applyStart">
+                        <v-btn variant="flat" color="primary" @click="applyStart">
                           Apply
                         </v-btn>
                       </v-card-actions>
@@ -263,7 +263,7 @@
                         <v-btn variant="text" @click="endMenu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="flat" @click="applyEnd">
+                        <v-btn variant="flat" color="primary" @click="applyEnd">
                           Apply
                         </v-btn>
                       </v-card-actions>
