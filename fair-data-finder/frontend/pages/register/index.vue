@@ -163,11 +163,29 @@
 
   const sortByOptions = ref([{ key: 'date', order: 'desc' }])
 
-  // Handle sort updates from Vuetify data table
+  // Maps Vuetify data-table column keys to the STAC field paths accepted by
+  // the Sort extension, so the header keys stay decoupled from STAC paths.
+  const SORT_FIELD_BY_COLUMN = {
+    title: 'properties.title',
+    description: 'properties.description',
+    domain: 'collection',
+    storageLocation: 'properties.storagelocation',
+    date: 'properties.datetime',
+  }
+
+  // Handle sort updates from Vuetify data table. Sorting is delegated to the
+  // API (STAC sortby), so this pushes the new sort to the store instead of
+  // reordering the currently loaded page in-memory.
   function handleSortUpdate(value) {
     if (value && value.length > 0) {
       const firstSort = value[0]
-      sortByOptions.value = [{ key: firstSort.key, order: firstSort.order || 'asc' }]
+      const order = firstSort.order || 'asc'
+      sortByOptions.value = [{ key: firstSort.key, order }]
+
+      const field = SORT_FIELD_BY_COLUMN[firstSort.key]
+      if (field) {
+        store.setSortBy([{ field, direction: order }])
+      }
     } else {
       sortByOptions.value = []
     }
@@ -187,42 +205,12 @@
     }))
   })
 
-  // Computed properties
-  const sortedDatasets = computed(() => {
-    const data = [...mappedDatasets.value]
-    if (sortByOptions.value.length === 0) {
-      return data
-    }
-
-    const sortKey = sortByOptions.value[0].key
-    const isDesc = sortByOptions.value[0].order === 'desc'
-
-    return data.sort((a, b) => {
-      let aVal = a[sortKey]
-      let bVal = b[sortKey]
-
-      // Handle date comparison
-      if (sortKey === 'date') {
-        aVal = aVal ? aVal.getTime() : 0
-        bVal = bVal ? bVal.getTime() : 0
-      } else {
-        // String comparison
-        aVal = (aVal || '').toString().toLowerCase()
-        bVal = (bVal || '').toString().toLowerCase()
-      }
-
-      if (aVal < bVal) return isDesc ? 1 : -1
-      if (aVal > bVal) return isDesc ? -1 : 1
-      return 0
-    })
-  })
-
   const itemsPerPage = computed(() => store.itemsPerPage)
 
   const paginatedDatasets = computed(() => {
-    // Since we're using API pagination, we show all items from current page
-    // The API already returns paginated results
-    return sortedDatasets.value
+    // The API returns items already paginated and sorted (STAC sortby), so
+    // no further client-side pagination or sorting is needed here.
+    return mappedDatasets.value
   })
 
   // Methods

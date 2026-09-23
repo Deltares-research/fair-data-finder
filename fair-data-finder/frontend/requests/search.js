@@ -16,6 +16,8 @@ import searchBody from '@/utils/search/searchBody.js'
  * @param {Array} searchParams.bbox - Bounding box
  * @param {number} searchParams.limit - Result limit
  * @param {string} searchParams.token - Pagination token
+ * @param {Array<Object>} searchParams.sortby - STAC sort extension fields,
+ *   e.g. [{ field: 'properties.datetime', direction: 'desc' }]
  * @param {Function} [$api] - openFetch client captured synchronously by the
  *   caller. Pass this explicitly whenever the call happens after an `await`
  *   (e.g. inside useAsyncData handlers or store actions): Nuxt only restores
@@ -45,6 +47,10 @@ export async function searchItems(searchParams = {}, $api = null) {
 
     if (searchParams.token) {
       body.token = searchParams.token
+    }
+
+    if (searchParams.sortby) {
+      body.sortby = searchParams.sortby
     }
 
     // credentials/cookie forwarding for SSR is handled globally by the

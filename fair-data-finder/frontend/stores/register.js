@@ -12,6 +12,9 @@ export const useRegisterStore = defineStore('register', () => {
   const totalMatched = ref(0)
   const isLoading = ref(false)
   const error = ref(null)
+  // STAC Sort extension fields, e.g. [{ field: 'properties.datetime', direction: 'desc' }].
+  // Defaults to newest-first, matching the table's original default.
+  const sortBy = ref([ { field: 'properties.datetime', direction: 'desc' } ])
   // True once the first fetch has completed, so subsequent visits to the
   // register list can show cached data immediately and refresh silently
   // instead of blocking the whole table behind a spinner again.
@@ -37,6 +40,7 @@ export const useRegisterStore = defineStore('register', () => {
       const data = await searchItems({
         limit: itemsPerPage.value,
         token,
+        sortby: sortBy.value,
       })
 
       // Handle response structure
@@ -132,6 +136,16 @@ export const useRegisterStore = defineStore('register', () => {
     fetchItems(null)
   }
 
+  // A pagination token encodes a position within a specific ordering, so a
+  // token issued under one sort is meaningless under another. Changing the
+  // sort therefore always resets pagination back to page 1.
+  function setSortBy(newSort) {
+    sortBy.value = newSort
+    tokenHistory.value = []
+    currentPage.value = 1
+    return fetchItems(null)
+  }
+
   function clearError() {
     error.value = null
   }
@@ -146,6 +160,7 @@ export const useRegisterStore = defineStore('register', () => {
     isLoading,
     error,
     hasLoaded,
+    sortBy,
     
     // Computed
     hasNextPage,
@@ -157,6 +172,7 @@ export const useRegisterStore = defineStore('register', () => {
     nextPage,
     previousPage,
     setItemsPerPage,
+    setSortBy,
     clearError,
   }
 })
