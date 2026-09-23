@@ -11,7 +11,11 @@
           {{ mode === 'edit' ? 'Edit item' : 'Register a new item' }}
         </h1>
 
-        <form @submit.prevent="handleSubmit">
+        <v-form
+          ref="formRef"
+          v-model="isFormValid"
+          @submit.prevent="handleSubmit"
+        >
           <!-- Loading state -->
           <v-card v-if="isLoading" class="mb-4">
             <v-card-text class="d-flex flex-column align-center justify-center py-12">
@@ -79,6 +83,7 @@
                     label="Project number"
                     variant="outlined"
                     :disabled="!formData.collection"
+                    :rules="[projectNumberRule]"
                   />
                 </v-col>
                 <v-col cols="12">
@@ -230,6 +235,7 @@
                     variant="outlined"
                     type="email"
                     :disabled="!formData.collection"
+                    :rules="[emailRule]"
                   />
                 </v-col>
               </v-row>
@@ -256,6 +262,7 @@
                     label="E-mail"
                     variant="outlined"
                     type="email"
+                    :rules="[emailRule]"
                   />
                 </v-col>
               </v-row>
@@ -600,7 +607,7 @@
               Publish project data
             </v-btn>
           </div>
-        </form>
+        </v-form>
       </v-col>
     </v-row>
   </v-container>
@@ -646,6 +653,8 @@
   const selectedKeywords = ref([])
   const selectedFacilityType = ref('')
   const isLoading = ref(props.mode === 'edit') // Edit starts loading, create doesn't
+  const formRef = ref(null)
+  const isFormValid = ref(true)
 
   // Initialize formData with proper structure
   const formData = ref({
@@ -675,6 +684,18 @@
   })
 
   const error = ref(null)
+
+  // Field validation rules
+  const projectNumberRule = (value) => {
+    if (!value) return true
+    return /^\d+$/.test(value) || 'Project number must be a number'
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailRule = (value) => {
+    if (!value) return true
+    return emailPattern.test(value) || 'Please enter a valid e-mail address'
+  }
 
   // Date picker menus
   const publicationDateMenu = ref(false)
@@ -944,6 +965,11 @@
 
   async function handleSubmit() {
     if (!formData.value?.collection || !formData.value?.properties?.title) {
+      return
+    }
+
+    const { valid } = await formRef.value.validate()
+    if (!valid) {
       return
     }
 
