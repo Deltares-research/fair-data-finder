@@ -49,18 +49,23 @@ export default defineNuxtConfig({
       // Branding shown in the app bar logo. Override per environment with
       // NUXT_PUBLIC_BRANDING_APP_NAME, NUXT_PUBLIC_BRANDING_TAGLINE and
       // NUXT_PUBLIC_BRANDING_LOGO_URL (path/URL to a custom logo image;
-      // leave empty to use the built-in icon).
+      // leave empty to use the built-in icon). Defaults to the white
+      // Deltares logo (public/deltares-logo-white.svg) since the app bar
+      // background is Deltares blue; the blue variant lives in
+      // public/deltares-logo.svg for light backgrounds.
       branding: {
         appName: 'Fair Data Finder',
         tagline: 'Discover · Share · Reuse',
-        logoUrl: '',
+        logoUrl: '/deltares-logo-white.svg',
       },
 
       // Vuetify theme colors. Override per environment with
       // NUXT_PUBLIC_THEME_PRIMARY, NUXT_PUBLIC_THEME_SECONDARY, etc.
+      // primary is the official Deltares blue; secondary is a lighter
+      // tint of it since Deltares' brand kit does not define an accent color.
       theme: {
-        primary: '#2563EB',
-        secondary: '#0F766E',
+        primary: '#0A28A3',
+        secondary: '#4C6FDC',
         background: '#F8FAFC',
         surface: '#FFFFFF',
         info: '#0284C7',

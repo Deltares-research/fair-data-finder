@@ -1,7 +1,7 @@
 :root {
-  --fdf-color-primary: #2563eb;
-  --fdf-color-primary-hover: #1d4ed8;
-  --fdf-color-secondary: #0f766e;
+  --fdf-color-primary: #0a28a3;
+  --fdf-color-primary-hover: #09228b;
+  --fdf-color-secondary: #4c6fdc;
   --fdf-color-success: #16a34a;
   --fdf-color-warning: #d97706;
   --fdf-color-error: #dc2626;
@@ -50,15 +50,26 @@ body {
 }
 
 .v-app-bar.v-toolbar {
-  background: var(--fdf-color-surface) !important;
-  border-bottom: 1px solid var(--fdf-color-border-light);
+  background: var(--fdf-color-primary) !important;
+  border-bottom: none;
   box-shadow: var(--fdf-shadow-sm) !important;
+  color: #ffffff !important;
 }
 
 .v-toolbar-title,
 .v-app-bar .text-subtitle2 {
-  color: var(--fdf-color-text);
+  color: #ffffff;
   font-weight: 600;
+}
+
+/* Login/logout buttons and icons in the app bar stay legible on the blue
+   background instead of the usual blue-on-blue text button styling. */
+.v-app-bar .v-btn--variant-text:not(.text-error) {
+  color: #ffffff !important;
+}
+
+.v-app-bar .v-btn--variant-text:not(.text-error):hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .v-tab {
@@ -67,7 +78,9 @@ body {
   font-weight: 500;
   letter-spacing: 0;
   min-height: 44px;
-  text-transform: none;
+  /* !important: v-tab renders as a v-btn, which sets an inline
+     text-transform: none style via VBtn defaults (plugins/vuetify.ts). */
+  text-transform: uppercase !important;
   transition: color var(--fdf-transition), background-color var(--fdf-transition);
 }
 
@@ -79,6 +92,27 @@ body {
 .v-tab.v-tab--selected,
 .v-tab.v-tab--selected .v-btn__content {
   color: var(--fdf-color-primary);
+}
+
+/* Nav tabs live inside the blue app bar, so they need white text (like the
+   Login/Logout buttons above) instead of the default muted-on-primary
+   styling above, which would be invisible on the blue background. */
+.v-app-bar .v-tab {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.v-app-bar .v-tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.v-app-bar .v-tab.v-tab--selected,
+.v-app-bar .v-tab.v-tab--selected .v-btn__content {
+  color: #ffffff;
+}
+
+.v-app-bar .v-tab .v-tab__slider {
+  background-color: #ffffff;
 }
 
 h1,

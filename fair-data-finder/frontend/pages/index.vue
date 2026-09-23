@@ -31,6 +31,15 @@
 
           <!-- Authenticated state with features -->
           <div v-else-if="canAccess">
+            <div class="mb-4">
+              <h1 class="text-h5 font-weight-bold mb-1">
+                {{ configStore.branding.appName }}
+              </h1>
+              <p class="text-body-2 text-grey mb-0">
+                {{ configStore.branding.tagline }}
+              </p>
+            </div>
+
             <feature-filters
               :options="filterOptions"
               class="mb-4"
@@ -153,6 +162,7 @@
 
   import { computed, watch, ref } from 'vue'
   import { useSearchPageStore } from '~/stores/searchPage'
+  import { useConfigStore } from '~/stores/config'
   import { useRoute } from 'vue-router'
   import { useAsyncData, useNuxtApp } from '#app'
   import { useAuth } from '~/composables/useAuth'
@@ -160,6 +170,7 @@
   import { formatDate } from '~/utils/helpers'
 
   const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const configStore = useConfigStore()
 
   // Captured synchronously (before any await) so it can be threaded through
   // to store.search() inside the useAsyncData handler below. Composables
