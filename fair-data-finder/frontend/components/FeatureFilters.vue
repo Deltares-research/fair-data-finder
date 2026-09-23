@@ -62,7 +62,6 @@
             
             <v-col
               cols="12"
-              md="4"
               class="filter-col"
             >
               <div class="text-subtitle-2 mb-2">
@@ -106,7 +105,6 @@
             <!-- Keyword -->
             <v-col
               cols="12"
-              md="4"
               class="filter-col"
             >
               <div class="text-subtitle-2 mb-2">
@@ -156,7 +154,7 @@
             >
               <v-row>
                 <!-- Start date -->
-                <v-col cols="6">
+                <v-col cols="12">
                   <div class="text-subtitle-2 mb-2">
                     Start date
                   </div>
@@ -214,7 +212,7 @@
                 </v-col>
 
                 <!-- End date -->
-                <v-col cols="6">
+                <v-col cols="12">
                   <div class="text-subtitle-2 mb-2">
                     End date
                   </div>
@@ -301,7 +299,7 @@
 
 
   const store = useSearchPageStore()
-  const expanded = ref(false)
+  const expanded = ref(true)
   const rootEl = ref(null)
   
 
@@ -607,20 +605,6 @@
   max-width: 100%;
 }
 
-@media (min-width: 960px) {
-  .filter-col {
-    position: relative;
-    padding-left: 16px;
-  }
-  .filter-col + .filter-col::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -8px;
-    width: 1px;
-    background: var(--v-theme-outline-variant);
-    opacity: 0.6;
-  }
-}
+/* Fields now stack vertically in the sidebar layout, so no side-by-side
+   divider between filter columns is needed. */
 </style>
