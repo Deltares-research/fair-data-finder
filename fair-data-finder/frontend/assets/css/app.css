@@ -146,7 +146,6 @@ h3,
 
 .text-body-2,
 .text-caption,
-.v-label,
 .v-messages,
 .v-selection-control .v-label {
   color: var(--fdf-color-muted);
@@ -290,21 +289,22 @@ a {
   margin-top: 8px;
 }
 
-.v-label {
+/* !important: Vuetify's own .v-label rule (VLabel.css) sets
+   opacity to the medium-emphasis token (~60%), and its .v-label.v-field-label
+   selector has the same specificity as ours, so the winner depends on CSS
+   bundle load order. Force our darker, fully-opaque styling so field labels
+   (title above each input) stay legible once a field is filled in and the
+   label floats to its small state above the outline. */
+.v-field .v-label.v-field-label,
+.v-field .v-label.v-field-label--floating {
+  color: #374151 !important;
   font-size: 13px;
   font-weight: 500;
-  opacity: 1;
+  opacity: 1 !important;
 }
 
-.v-field-label {
-  color: #374151;
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 1;
-}
-
-.v-field--focused .v-field-label {
-  color: var(--fdf-color-primary);
+.v-field--focused .v-label.v-field-label {
+  color: var(--fdf-color-primary) !important;
 }
 
 .v-chip {
