@@ -68,6 +68,7 @@
                 Domain
               </div>
               <v-autocomplete
+                ref="domainFieldEl"
                 v-model="selectedCollection"
                 :items="store.collections"
                 item-value="id"
@@ -111,6 +112,7 @@
                 Keyword
               </div>
               <v-autocomplete
+                ref="keywordFieldEl"
                 v-model="selectedKeyword"
                 :items="store.keywords"
                 item-title="nl_keyword"
@@ -203,7 +205,11 @@
                         <v-btn variant="text" @click="startMenu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="flat" color="primary" @click="applyStart">
+                        <v-btn
+                          variant="flat"
+                          color="primary"
+                          @click="applyStart"
+                        >
                           Apply
                         </v-btn>
                       </v-card-actions>
@@ -261,7 +267,11 @@
                         <v-btn variant="text" @click="endMenu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="flat" color="primary" @click="applyEnd">
+                        <v-btn
+                          variant="flat"
+                          color="primary"
+                          @click="applyEnd"
+                        >
                           Apply
                         </v-btn>
                       </v-card-actions>
@@ -293,7 +303,7 @@
 </template>
 
 <script setup>
-  import { ref, watch, computed} from 'vue'
+  import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
   import { useSearchPageStore } from '~/stores/searchPage'
 
 
@@ -301,7 +311,41 @@
   const store = useSearchPageStore()
   const expanded = ref(true)
   const rootEl = ref(null)
-  
+  const domainFieldEl = ref(null)
+  const keywordFieldEl = ref(null)
+
+  // The Domain/Keyword dropdown menus are teleported out to <body>, so they
+  // can't size themselves from their activator field via CSS alone once
+  // Vuetify's virtual-scroll kicks in (see the .domain-menu-content /
+  // .keyword-menu-content comment below). Keep them aligned by measuring the
+  // actual field width and publishing it as a CSS variable the menus read.
+  let resizeObserver = null
+
+  const menuWidthTargets = [
+    { fieldRef: domainFieldEl, cssVar: '--domain-menu-width' },
+    { fieldRef: keywordFieldEl, cssVar: '--keyword-menu-width' },
+  ]
+
+  function syncMenuWidths() {
+    for (const { fieldRef, cssVar } of menuWidthTargets) {
+      const width = fieldRef.value?.$el?.offsetWidth
+      if (width) {
+        document.documentElement.style.setProperty(cssVar, `${ width }px`)
+      }
+    }
+  }
+
+  onMounted(() => {
+    syncMenuWidths()
+    resizeObserver = new ResizeObserver(syncMenuWidths)
+    for (const { fieldRef } of menuWidthTargets) {
+      if (fieldRef.value?.$el) resizeObserver.observe(fieldRef.value.$el)
+    }
+  })
+
+  onBeforeUnmount(() => {
+    resizeObserver?.disconnect()
+  })
 
   /* --- Convert store arrays to single values for display --- */
   const selectedCollection = computed({
@@ -531,16 +575,22 @@
    virtual-scroll rendering, which breaks the normal "match the activator
    width" sizing: the overlay's width ends up unconstrained and can grow to
    fill almost the whole viewport (only reliably reproduced with production-
-   sized item lists, e.g. in production builds). Forcing an explicit pixel
-   width avoids that broken auto-sizing. These styles must be global (not
-   scoped) because Vuetify teleports the dropdown content to the end of
-   <body>, outside this component's DOM. content-class alone is silently
-   ignored by VAutocomplete (it hardcodes its own contentClass on the
-   internal VMenu after menuProps is merged), so the class is applied via
+   sized item lists, e.g. in production builds). A fixed pixel width avoids
+   that broken auto-sizing, but a hardcoded value doesn't line up with the
+   actual field width, so the menu ends up wider/narrower than its activator.
+   --domain-menu-width / --keyword-menu-width are kept in sync with the real
+   field width via a ResizeObserver in the script block. These styles must be
+   global (not scoped) because Vuetify teleports the dropdown content to the
+   end of <body>, outside this component's DOM. content-class alone is
+   silently ignored by VAutocomplete (it hardcodes its own contentClass on
+   the internal VMenu after menuProps is merged), so the class is applied via
    :menu-props="{ contentClass: '...' }" instead. */
-:global(.domain-menu-content),
+:global(.domain-menu-content) {
+  width: var(--domain-menu-width, 320px) !important;
+}
+
 :global(.keyword-menu-content) {
-  width: 320px !important;
+  width: var(--keyword-menu-width, 320px) !important;
 }
 
 .filter-selection-text {
