@@ -825,10 +825,29 @@
     selectedKeywords.value = []
   }
 
+  // Extract the calendar date (yyyy-mm-dd) from a Date using local time
+  // components, avoiding the UTC conversion shift toISOString() introduces
+  // for timezones ahead of UTC.
+  function toIsoDateOnly(value) {
+    const d = new Date(value)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  // Build a UTC-midnight ISO datetime string that preserves the local
+  // calendar date, instead of shifting it via toISOString().
+  function toUtcMidnightIso(value) {
+    const d = new Date(value)
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString()
+  }
+
   function applyPublicationDate() {
     if (formData.value?.properties?.publication_datetime) {
-      const date = new Date(formData.value.properties.publication_datetime)
-      formData.value.properties.publication_datetime = date.toISOString().split('T')[0]
+      formData.value.properties.publication_datetime = toIsoDateOnly(
+        formData.value.properties.publication_datetime
+      )
       publicationDateMenu.value = false
     }
   }
@@ -951,10 +970,10 @@
       // Handle datetime fields
       if (tempStartDate.value && tempEndDate.value) {
         itemData.properties.datetime = null
-        itemData.properties.start_datetime = new Date(tempStartDate.value).toISOString()
-        itemData.properties.end_datetime = new Date(tempEndDate.value).toISOString()
+        itemData.properties.start_datetime = toUtcMidnightIso(tempStartDate.value)
+        itemData.properties.end_datetime = toUtcMidnightIso(tempEndDate.value)
       } else if (tempStartDate.value && !tempEndDate.value) {
-        itemData.properties.datetime = new Date(tempStartDate.value).toISOString()
+        itemData.properties.datetime = toUtcMidnightIso(tempStartDate.value)
         itemData.properties.start_datetime = undefined
         itemData.properties.end_datetime = undefined
       }
