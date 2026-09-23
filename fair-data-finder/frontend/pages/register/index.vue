@@ -120,6 +120,7 @@
         >
           Previous
         </v-btn>
+        <span class="text-body-2 mx-2">Page {{ store.currentPage }}</span>
         <v-btn
           :disabled="!store.hasNextPage"
           variant="outlined"
