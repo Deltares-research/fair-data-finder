@@ -50,10 +50,9 @@
         v-else
         :headers="headers"
         :items="mappedDomains"
+        v-model:page="page"
         :items-per-page="itemsPerPage"
-        :page="1"
         class="elevation-0 flex-grow-1"
-        hide-default-footer
         :sort-by="sortByOptions"
         @update:sort-by="handleSortUpdate"
       >
@@ -138,6 +137,7 @@
 
   const sortByOptions = ref([{ key: 'title', order: 'asc' }])
   const itemsPerPage = ref(10)
+  const page = ref(1)
 
   // Handle sort updates from Vuetify data table
   function handleSortUpdate(value) {
