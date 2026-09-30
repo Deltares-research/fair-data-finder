@@ -1,0 +1,143 @@
+---
+title: "Metadata schema"
+---
+
+This page documents the metadata Fair Data Finder stores on a dataset (STAC
+Item) and where it appears. The registration form
+(`ItemForm`) is the source of truth for fields written at create/edit time.
+
+## Where metadata lives
+
+| Layer | What you see |
+|-------|----------------|
+| **Internal (pgSTAC Item)** | Full Item JSON: `id`, `collection`, `geometry`, `bbox`, `properties`, `assets`, `links` |
+| **Application API / STAC API** | Same Item JSON via `/api/collections/{id}/items/...` and `/api/search` |
+| **STAC core fields** | Standard Item fields (`geometry`, `datetime`, `assets`, …) |
+| **FDF-specific properties** | Custom keys under `properties` (for example `projectNumber`, `legalRestrictions`) |
+| **Keyword vocabulary** | Managed in `public` tables; a **snapshot** is copied onto `properties.keywords` |
+
+::: {.callout-note}
+Keyword definitions can change later in the Keywords tab. Existing Items keep
+the keyword objects that were stored when the Item was saved.
+:::
+
+## Dataset (Item) metadata
+
+### Identification
+
+| Field | Required for submit | Description |
+|-------|---------------------|-------------|
+| `collection` | Yes | Parent domain (STAC Collection id) |
+| `properties.title` | Yes | Dataset title (UI label: *Project title*) |
+| `properties.projectNumber` | No | Optional numeric project number |
+| `properties.description` | No | Free-text description |
+| `properties.language` | No | Default `eng` |
+| `id` | Auto | Generated identifier (nanoid) |
+
+### Temporal information
+
+| Field | Description |
+|-------|-------------|
+| `properties.datetime` | Instant in time, or `null` when a range is used |
+| `properties.start_datetime` | Start of a temporal range |
+| `properties.end_datetime` | End of a temporal range |
+| `properties.publication_datetime` | Publication date (date-only ISO string) |
+
+Use either an instant (`datetime`) or a range (`start_datetime` /
+`end_datetime`), consistent with STAC temporal conventions.
+
+### Spatial information
+
+| Field | Description |
+|-------|-------------|
+| `geometry` | GeoJSON geometry; may be `null` for non-spatial / global datasets |
+| `bbox` | Bounding box derived from geometry when present |
+| `properties.spatialReferenceSystem` | CRS or “not applicable”; custom values allowed |
+
+### Domains and keywords
+
+| Field | Description |
+|-------|-------------|
+| `collection` | Domain membership |
+| `properties.facility_type` | Origin type used to filter available keyword groups (`experimentalFacility`, `numericalModel`, `Field`, …) |
+| `properties.keywords` | Array of keyword **objects** selected at registration (`id`, `nl_keyword`, `en_keyword`, …) |
+
+Search filters domains via the Collection and keywords via
+`properties.keywords.id` (CQL2 `a_overlaps`).
+
+### Data access and legal
+
+| Field | Description |
+|-------|-------------|
+| `assets` | Map of assets: `title`, `description`, `href`, `type` (optional `roles` when present) |
+| `properties.legalRestrictions` | Restriction code (default `license`) |
+| `properties.restrictionsOfUse` | Free-text use restrictions |
+
+Collection-level `license` is set to `proprietary` when Domains are created
+in the UI.
+
+### Originators and quality
+
+| Field | Description |
+|-------|-------------|
+| `properties.originatorDataOrganisation` | Default `Deltares` |
+| `properties.originatorDataEmail` | Optional |
+| `properties.originatorMetaDataOrganisation` | Default `Deltares` |
+| `properties.originatorMetaDataEmail` | Optional |
+| `properties.dataQualityInfoStatement` | Free text |
+
+### Fields sometimes present but not set by the registration form
+
+These may appear on Items (for example from older data or other writers) and
+are shown or searched when present:
+
+| Field | Notes |
+|-------|-------|
+| `properties.providers` | Shown on the item detail page if present |
+| `properties.updated` / `properties.created` | Shown on the item detail page if present |
+| `properties.license`, `metadataStandardName`, `progressCode` | Included in full-text search matching if present |
+| `properties.storagelocation` | Shown as a column on the Register list; the form stores access links in **assets** |
+
+The UI may set a client-only flag `globaldataset` when `geometry` is `null`;
+that flag is for display in Search, not a persisted registration field.
+
+## Domain (Collection) metadata
+
+When a Data Steward creates a domain, Fair Data Finder writes a STAC
+Collection with:
+
+| Field | Typical value in FDF |
+|-------|----------------------|
+| `type` | `Collection` |
+| `stac_version` | `1.0.0` |
+| `id` / `title` | From the domain title |
+| `description` | Domain description |
+| `keywords` | Often an empty array at Collection level |
+| `license` | `proprietary` |
+| `extent.spatial.bbox` | Spatial extent |
+| `extent.temporal.interval` | Temporal extent |
+| `links` | Optional keywords facility link (`rel: "keywords"`) |
+
+## Summary: internal vs API vs STAC
+
+```{mermaid}
+flowchart TB
+  subgraph public_schema [public schema]
+    Fac[Facility / Keyword tables]
+    Users[Users / Groups / Roles]
+  end
+  subgraph pgstac [pgstac schema]
+    Col[Collection = Domain]
+    It[Item = Dataset]
+  end
+  Fac -.->|link on Collection| Col
+  Fac -->|snapshot on save| It
+  Col --> It
+  It -->|GET/POST /api/search<br/>/api/collections/.../items| API[STAC API JSON]
+```
+
+- **Internally:** vocabularies and RBAC in `public`; domains/datasets in `pgstac`.
+- **Through the API:** Collections and Items are standard STAC JSON (plus FDF
+  properties under `properties`).
+- **Through STAC concepts:** Domain = Collection, Dataset = Item, access
+  links = Assets. See [STAC](stac.qmd).

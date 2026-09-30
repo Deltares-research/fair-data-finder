@@ -1,0 +1,300 @@
+---
+title: "STAC"
+---
+
+Fair Data Finder exposes domains and datasets through a
+[STAC](https://stacspec.org/) API built on
+[stac-fastapi](https://github.com/stac-utils/stac-fastapi) and
+[pgSTAC](https://github.com/stac-utils/pgstac).
+
+Official references:
+
+- [STAC specification](https://github.com/radiantearth/stac-spec)
+- [STAC API specification](https://github.com/radiantearth/stac-api-spec)
+- [STAC Item Search](https://api.stacspec.org/v1.0.0/item-search/)
+- [STAC Filter Extension (CQL2)](https://github.com/stac-api-extensions/filter)
+
+## What is STAC?
+
+**STAC** (SpatioTemporal Asset Catalog) is an open specification for
+describing geospatial datasets so that they can be searched and accessed in a
+consistent way.
+
+It solves a common problem: every portal invents its own metadata shape and
+search API. STAC defines shared JSON structures and HTTP patterns so clients
+(and humans) can discover **what data exists**, **where and when it applies**,
+and **how to open it**.
+
+Fair Data Finder uses STAC so that:
+
+- Domains and datasets have a standard JSON representation
+- Search can use standard Item Search + CQL2 filters
+- Data access links are modelled as Assets
+- The same records power the UI and external API consumers
+
+### Main STAC concepts
+
+| Concept | Meaning |
+|---------|---------|
+| **Catalog** | Entry point that links to collections and other resources |
+| **Collection** | Group of related Items, with its own metadata and extent |
+| **Item** | One dataset record (a GeoJSON Feature with STAC fields) |
+| **Asset** | A downloadable or browsable resource (`href`) attached to an Item |
+| **Spatial extent** | Geographic coverage (Collection extent and/or Item `geometry` / `bbox`) |
+| **Temporal extent** | Time coverage (Collection interval and/or Item `datetime` / start–end) |
+
+This page does not reproduce the full specification — use the links above for
+normative detail.
+
+## STAC in Fair Data Finder
+
+```{mermaid}
+flowchart TB
+  Cat[STAC Catalog<br/>GET /api/]
+  Col[Collection<br/>= Domain]
+  Item[Item<br/>= Dataset]
+  Asset[Asset<br/>= data access href]
+  Fac[Facility keywords<br/>public schema]
+
+  Cat --> Col
+  Col --> Item
+  Item --> Asset
+  Fac -.->|Collection link rel=keywords| Col
+  Fac -.->|copied to properties.keywords| Item
+```
+
+| FDF concept | STAC representation |
+|-------------|---------------------|
+| Catalog root | `GET /api/` |
+| Domain | Collection |
+| Dataset / registered record | Item |
+| File or service link | Asset on the Item |
+| Keyword vocabulary | Application API (`/facility`, `/keywords`, …), linked from the Collection |
+| Keywords on a dataset | `properties.keywords` (array of objects) |
+| Project number | `properties.projectNumber` (custom property) |
+
+### Notable FDF behaviours
+
+- **Null geometry is allowed.** Items without geometry are valid and appear
+  in Search as global datasets.
+- **Domain ↔ keywords link** uses a Collection link with `rel: "keywords"`
+  pointing at a Facility id — this is application-specific, not a core STAC
+  relation.
+- **Many descriptive fields** are custom properties under `properties`
+  (see [Metadata schema](metadata-schema.qmd)).
+- **RBAC** restricts who may create/update/delete Collections and Items;
+  authenticating is still required to call almost all STAC routes.
+
+## Using the STAC API
+
+All routes are served under the `/api` root path (configurable via
+`STAC_FASTAPI_ROOT_PATH`, default `/api`).
+
+Interactive OpenAPI / Swagger UI is available at `{API}/api.html` when the
+backend is running. Below, `{API}` means your Fair Data Finder base URL (for
+example `https://your-fdf-instance.example.com/api`).
+
+### Authentication
+
+Almost all STAC endpoints require a logged-in session. Fair Data Finder
+authenticates with an HTTP **cookie** named `DMS_TOKEN` (a JWT issued after
+Microsoft SSO login). This is **not** a Bearer token in an `Authorization`
+header.
+
+Public exceptions (no cookie required):
+
+| Method | Path |
+|--------|------|
+| `GET` | `/` (catalog landing page) |
+| `GET` | `/auth/login`, `/auth/logout`, `/auth/callback`, `/auth/me` |
+
+Obtain a token by signing in through the UI (`/api/auth/login`). The browser
+stores `DMS_TOKEN` automatically. For scripted access, pass the same cookie:
+
+```bash
+curl \
+  -H "Cookie: DMS_TOKEN=$DMS_TOKEN" \
+  "{API}/collections"
+```
+
+Do not commit real tokens. Treat `$DMS_TOKEN` as a secret.
+
+::: {.callout-important}
+Calls to `/search`, `/collections`, and item routes without a valid
+`DMS_TOKEN` cookie return **401 Unauthorized**.
+:::
+
+### Endpoints
+
+#### Catalog
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/` |
+| **Auth** | Public |
+| **Description** | STAC Catalog landing page (conformance links, child links) |
+
+#### Conformance
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/conformance` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | Lists implemented STAC API conformance classes |
+
+#### Collections
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/collections` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | List domains (Collections) |
+
+```bash
+curl -H "Cookie: DMS_TOKEN=$DMS_TOKEN" "{API}/collections"
+```
+
+| | |
+|--|--|
+| **Method / path** | `POST {API}/collections` |
+| **Auth** | Requires `DMS_TOKEN` + `collection:create` |
+| **Description** | Create a domain |
+
+#### Individual collection
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/collections/{collection_id}` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | Fetch one domain |
+
+```bash
+curl -H "Cookie: DMS_TOKEN=$DMS_TOKEN" \
+  "{API}/collections/ecology"
+```
+
+Also supported with appropriate permissions: `PUT`, `PATCH`, `DELETE` on
+`/collections/{collection_id}`.
+
+#### Items in a collection
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/collections/{collection_id}/items` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | List datasets in a domain |
+
+| | |
+|--|--|
+| **Method / path** | `POST {API}/collections/{collection_id}/items` |
+| **Auth** | Requires `DMS_TOKEN` + `item:create` on that collection |
+| **Description** | Register a dataset |
+
+| | |
+|--|--|
+| **Method / path** | `GET {API}/collections/{collection_id}/items/{item_id}` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | Fetch one dataset |
+
+Also supported with permissions: `PUT`, `PATCH`, `DELETE` on the item path,
+and `POST /collections/{collection_id}/bulk_items` for bulk writes.
+
+#### Search
+
+Implements [STAC API Item Search](https://api.stacspec.org/v1.0.0/item-search/).
+
+| | |
+|--|--|
+| **Method / path** | `GET` or `POST {API}/search` |
+| **Auth** | Requires `DMS_TOKEN` |
+| **Description** | Search datasets across collections |
+
+Common body fields: `collections`, `bbox`, `intersects`, `datetime`,
+`limit`, `fields`, `sortby`, `token`, `filter`, `filter-lang`.
+
+**Unfiltered search** (omit `filter` entirely):
+
+```bash
+curl -X POST "{API}/search" \
+  -H "Cookie: DMS_TOKEN=$DMS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit": 500}'
+```
+
+**CQL2 JSON filter** (`filter-lang: cql2-json`), as used by the UI:
+
+```bash
+curl -X POST "{API}/search" \
+  -H "Cookie: DMS_TOKEN=$DMS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filter-lang": "cql2-json",
+    "filter": {
+      "op": "and",
+      "args": [
+        {
+          "op": "like",
+          "args": [{ "property": "properties.title" }, "%water%"]
+        },
+        {
+          "op": "a_overlaps",
+          "args": [
+            { "property": "properties.keywords.id" },
+            ["0898e009-a91d-4589-8adc-837178859c73"]
+          ]
+        }
+      ]
+    }
+  }'
+```
+
+Operators used by Fair Data Finder include `and`, `or`, `like`, `>=`, `<=`,
+`s_intersects`, `a_overlaps`, and `isNull`. Array-valued keyword ids must use
+`a_overlaps`, not `in`.
+
+Queryable properties are advertised at `{API}/queryables`.
+
+#### Queryables and health
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `{API}/queryables` | Properties available for CQL2 filters |
+| `GET` | `{API}/_mgmt/health` | Health check |
+| `GET` | `{API}/_mgmt/ping` | Ping |
+
+### Example Item shape (illustrative)
+
+```json
+{
+  "type": "Feature",
+  "stac_version": "1.0.0",
+  "id": "V1StGXR8_Z5jdHi6B-myT",
+  "collection": "ecology",
+  "geometry": null,
+  "bbox": null,
+  "properties": {
+    "title": "Example dataset",
+    "projectNumber": "1234567",
+    "description": "…",
+    "datetime": "2024-06-01T00:00:00Z",
+    "keywords": [
+      {
+        "id": "0898e009-a91d-4589-8adc-837178859c73",
+        "nl_keyword": "Voorbeeld",
+        "en_keyword": "Example"
+      }
+    ]
+  },
+  "assets": {
+    "data": {
+      "title": "Dataset",
+      "href": "https://example.invalid/data.zip",
+      "type": "application/zip"
+    }
+  },
+  "links": []
+}
+```
+
+For the full application API surface (auth, keywords, groups), see
+[API](api.qmd).

@@ -1,0 +1,12 @@
+---
+title: "Register"
+---
+
+The *Register* tab is only accessible to Deltares employees. The tab will
+show you a table with all registered datasets. The most important button here is
+the *Register new dataset* button, which takes you to the registration form.
+This will first force you to select a Domain to which your dataset broadly
+belongs to (e.g. Ecology). After you have selected a Domain, the rest of the
+registration form will open.
+
+**Full description registration here, probably better to write when this form stabilizes**

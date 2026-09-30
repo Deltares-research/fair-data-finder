@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-    name: Render Quarto manual
+    name: Render Quarto website
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -33,20 +33,9 @@ jobs:
           pixi-version: latest
           manifest-path: docs/manual/pixi.toml
 
-      - name: Render HTML manual
+      - name: Render website
         working-directory: docs/manual
-        run: pixi run render_html
-
-      - name: Collect site artefacts
-        # Pages needs an index.html entry point.
-        # Copy user_manual.html → _site/index.html and include the
-        # companion user_manual_files/ asset directory if Quarto created it.
-        run: |
-          mkdir -p docs/manual/_site
-          cp docs/manual/user_manual.html docs/manual/_site/index.html
-          if [ -d docs/manual/user_manual_files ]; then
-            cp -r docs/manual/user_manual_files docs/manual/_site/
-          fi
+        run: pixi run render
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

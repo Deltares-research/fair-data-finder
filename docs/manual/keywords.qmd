@@ -1,0 +1,21 @@
+---
+title: "Keywords"
+---
+
+In the *Keywords* tab, keywords can be configured. This tab can only be
+accessed by Data Stewards. Keywords are specified in a 3-tier hierarchy:
+domains contain keyword groups, and keyword groups contain keywords.
+A keyword domain can be assigned to [a domain in the Domains tab](domains.qmd).
+
+To add new keywords:
+
+1. In the *Keywords* tab, under "Section", click *Domains*
+2. Then in the *Add domain* bar enter your domain name (e.g. "Groundwater"),
+   and click *Add domain* to add it to the list
+3. Then under "Section" click on *Keyword Groups*
+4. Fill in a Dutch group name in Group name NL (e.g. "Grondwater software"),
+   an English name in Group name EN, and select a "facility type"
+   (e.g. Numerical modelling)
+5. Click on the keyword group you just created under "Keyword Groups"
+6. On the right-hand side, add individual keywords. Make sure to add both an
+   English and a Dutch name for each keyword

@@ -1,0 +1,49 @@
+---
+title: "Search"
+---
+
+The *Search* tab is open to those that are SSO logged in. If you are not
+logged in, you will see a message asking you to log in before you can search.
+
+The tab has three parts: a filter panel on the left, a search field with
+results list in the centre, and a map on the right.
+
+## Item view
+
+Above the results list is a search field (*Search title or description*). Type
+a query and press *Search* (or submit the form); the Fair Data Finder searches
+registered items by title, description, and related metadata, and shows matching
+datasets in the list. Active filters and the query appear as chips that you can
+clear individually, or all at once with *Clear filters*.
+
+On the left, the *Filter* panel lets you narrow results by:
+
+- *Domain* — one or more expertise domains
+- *Keyword* — one or more keywords
+- *Start date* / *End date* — temporal range of the dataset
+- *Area* — set by drawing a polygon on the map (see [Map](#map))
+
+Each result card shows the title, a short description, domain, optional
+thumbnail, date information, and a link to the first asset when available.
+Datasets without geometry are marked as *Global Dataset*. From a card you can:
+
+- click *View details* to open the full item page (description, geometry map if
+  present, assets, properties, and providers)
+- click *Zoom to data* (when the item has a bounding box) to focus that item on
+  the map
+
+## Map
+
+The right-hand side shows the current search results on a map. Datasets with
+geometry appear as clustered point markers and/or footprints (polygons or
+lines). Global datasets without geometry are not drawn on the map.
+
+To restrict the search to a geographic area, use the polygon draw tool on the
+map (top-left). Drawing a polygon filters results to items that intersect that
+area; an *Area: Selected* chip appears with the other filters. Use the trash
+control to clear the drawn area and remove the area filter.
+
+Clicking a marker or footprint selects that item, zooms to it, and opens a
+popup with title, description, asset link, and *View details*. Clicking empty
+map space clears the selection. The map automatically fits to the extent of the
+current results when no area filter is active.

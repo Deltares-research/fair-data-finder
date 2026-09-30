@@ -6,9 +6,8 @@ platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
-install_tinytex = "quarto install tinytex"
-render_pdf = "quarto render user_manual.qmd --to pdf --output user_manual.pdf"
-render_html = "quarto render user_manual.qmd --to html --output user_manual.html"
+render = "quarto render"
+preview = "quarto preview"
 
 [dependencies]
 quarto = ">=1.7.32,<2"

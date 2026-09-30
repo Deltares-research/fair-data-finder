@@ -1,6 +1,24 @@
 # User Manual
 
-The end-user manual is written in [Quarto](https://quarto.org/) (`user_manual.qmd`) and describes how to use the Fair Data Finder application.
+The end-user manual is a multi-page [Quarto](https://quarto.org/) website
+describing how to use the Fair Data Finder application. The site is configured
+by `_quarto.yml` and composed of one `.qmd` file per tab.
+
+## Structure
+
+| Page | File |
+|------|------|
+| Introduction & Logging in | `index.qmd` |
+| Search | `search.qmd` |
+| Register | `register.qmd` |
+| Domains | `domains.qmd` |
+| Keywords | `keywords.qmd` |
+| Groups | `groups.qmd` |
+| Concepts | `concepts.qmd` |
+| Data model | `data-model.qmd` |
+| Metadata schema | `metadata-schema.qmd` |
+| STAC | `stac.qmd` |
+| API | `api.qmd` |
 
 ## Render locally
 
@@ -12,15 +30,17 @@ The end-user manual is written in [Quarto](https://quarto.org/) (`user_manual.qm
    cd docs/manual
    ```
 
-3. Render as HTML:
+3. Preview the site with hot-reload (recommended during authoring):
 
    ```bash
-   pixi run render_html
+   pixi run preview
    ```
 
-4. Render as PDF:
+4. Or render the full site to `_site/`:
 
    ```bash
-   pixi run install_tinytex
-   pixi run render_pdf
+   pixi run render
    ```
+
+The rendered site opens in your browser automatically when using `preview`.
+The `render` command writes output to `_site/` (git-ignored).

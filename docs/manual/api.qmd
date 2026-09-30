@@ -1,0 +1,129 @@
+---
+title: "API"
+---
+
+Fair Data Finder exposes a single HTTP API under the `/api` prefix. The same
+surface powers the Nuxt frontend and external clients. Interactive
+documentation is available when the backend is running:
+
+- Swagger UI: `{API}/api.html`
+- OpenAPI JSON: `{API}/api`
+
+## What the API is used for
+
+| Area | Purpose |
+|------|---------|
+| **STAC** | Domains (Collections), datasets (Items), search, queryables |
+| **Keywords** | Facilities, keyword groups, keywords |
+| **RBAC** | Users list, groups, members, roles, permissions |
+| **Auth** | Microsoft SSO login, logout, session (`/auth/*`) |
+
+STAC details, examples, and CQL2 search are documented under [STAC](stac.qmd).
+
+## How the frontend talks to the backend
+
+```{mermaid}
+flowchart LR
+  Browser --> Proxy[Caddy / nginx<br/>same origin]
+  Proxy -->|/api/*| Backend[FastAPI<br/>stac-fastapi]
+  Proxy -->|everything else| Frontend[Nuxt]
+  Frontend -->|SSR internal| Backend
+```
+
+- Browser requests use the relative base URL `/api` so frontend and backend
+  share one origin (required for the `DMS_TOKEN` cookie).
+- The typed client is generated from the OpenAPI schema
+  (`nuxt-open-fetch`).
+- Server-side rendering calls the backend on the internal Docker network
+  (for example `http://backend:8000/api`) and forwards cookies.
+
+## STAC API vs application API
+
+There is **one** FastAPI application — not two services. The distinction is
+conceptual:
+
+| | STAC routes | Application routes |
+|--|-------------|-------------------|
+| **Data store** | `pgstac` schema | `public` schema |
+| **Examples** | `/collections`, `/search`, `/collections/{id}/items` | `/facility`, `/keywords`, `/groups`, `/auth/login` |
+| **Payloads** | STAC Catalog / Collection / Item JSON | SQLModel request/response models |
+
+Extensions registered on the same app add keywords, RBAC, and SSO alongside
+core STAC operations.
+
+## Authentication
+
+Session auth uses the **`DMS_TOKEN` cookie** (JWT after SSO). See
+[STAC → Authentication](stac.qmd#authentication).
+
+```bash
+curl -H "Cookie: DMS_TOKEN=$DMS_TOKEN" \
+  "{API}/groups"
+```
+
+Many write operations also require **permissions** derived from the user's
+group roles (for example `item:create` on a collection, or `keyword:all`).
+
+## Application endpoints (summary)
+
+Paths below are relative to `{API}` (your Fair Data Finder base URL).
+All listed routes require a valid `DMS_TOKEN` unless noted.
+
+### Auth
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/auth/login` | Public | Start Microsoft SSO |
+| `GET` | `/auth/callback` | Public | OAuth callback; sets `DMS_TOKEN` |
+| `GET` | `/auth/logout` | Public | Clear session cookie |
+| `GET` | `/auth/me` | Requires `DMS_TOKEN` | Current user profile |
+
+### Keywords / facilities
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` / `POST` | `/facility`, `/facilities` | Create facility; list facilities |
+| `GET` / `PUT` / `DELETE` | `/facility/{facility_id}` | Read / update / delete facility |
+| `POST` / `DELETE` | `/facility_keywordgroup_link` | Link facility ↔ keyword group |
+| `GET` / `POST` | `/keywordgroup`, `/keywordgroups` | Create / list keyword groups |
+| `GET` / `PUT` / `DELETE` | `/keywordgroup/{keywordgroup_id}` | Manage one group |
+| `GET` / `POST` | `/keyword`, `/keywords` | Create / list keywords (`?facility_id=` or `?keyword_group_id=`) |
+| `GET` / `PUT` / `DELETE` | `/keyword/{keyword_id}` | Manage one keyword |
+
+Mutating keyword routes require the `keyword:all` permission.
+
+### Groups, users, and roles
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/users` | Users known to the app (SSO logins) |
+| `GET` / `POST` | `/groups` | List / create groups |
+| `GET` / `PUT` / `DELETE` | `/groups/{group_id}` | Manage a group |
+| `GET` / `POST` / `DELETE` | `/groups/{group_id}/members` | Group membership |
+| `GET` | `/roles` | Available roles |
+| `POST` / `DELETE` | `/group-role` | Assign / remove **global** roles |
+| `POST` / `GET` / `DELETE` | `/group-role/{collection_id}` | Collection-scoped roles |
+| `GET` | `/permissions` | Permissions for the current user |
+| `GET` | `/collection-permissions` | Collection permissions overview |
+| `GET` | `/collection-permissions/{collection_id}` | Permissions for one collection |
+
+### STAC (pointer)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | Catalog |
+| `GET` / `POST` | `/collections` | List / create domains |
+| `GET` / `PUT` / `PATCH` / `DELETE` | `/collections/{collection_id}` | One domain |
+| `GET` / `POST` | `/collections/{collection_id}/items` | List / create datasets |
+| `GET` / `PUT` / `PATCH` / `DELETE` | `/collections/{collection_id}/items/{item_id}` | One dataset |
+| `GET` / `POST` | `/search` | Item search |
+| `GET` | `/queryables` | Filterable properties |
+
+Full STAC documentation: [STAC](stac.qmd).
+
+## Further reading
+
+- [Concepts](concepts.qmd) — mental model
+- [Data model](data-model.qmd) — entities and relationships
+- [Metadata schema](metadata-schema.qmd) — Item and Collection fields
+- [STAC](stac.qmd) — specification mapping and search examples

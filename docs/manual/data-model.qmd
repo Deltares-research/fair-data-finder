@@ -1,0 +1,154 @@
+---
+title: "Data model"
+---
+
+Fair Data Finder stores information in one PostgreSQL database with two
+schemas:
+
+| Schema | Contents | Managed by |
+|--------|----------|------------|
+| `pgstac` | STAC Collections and Items (domains and datasets) | `pypgstac migrate` |
+| `public` | Users, groups, roles, keyword vocabulary | Alembic |
+
+This page describes the important entities and how they relate. It is an
+overview, not a full dump of every column.
+
+## Entity overview
+
+```{mermaid}
+erDiagram
+  User ||--o{ GroupUserLink : member_of
+  Group ||--o{ GroupUserLink : has
+  Group ||--o{ GroupRole : has
+  Facility ||--o{ FacilityKeywordGroupLink : has
+  Keyword_Group ||--o{ FacilityKeywordGroupLink : in
+  Keyword_Group ||--o{ Keyword : contains
+
+  Collection ||--o{ Item : contains
+  Collection }o--o| Facility : "link rel=keywords"
+  Item }o--o{ Keyword : "properties.keywords snapshot"
+```
+
+Collections and Items live in **pgSTAC**. Users, groups, facilities, and
+keywords live in the **public** schema. The dashed relationship between a
+Collection and a Facility is a STAC link on the Collection, not a database
+foreign key.
+
+## Application entities (`public`)
+
+### User
+
+Represents a person who has signed in with SSO (or was seeded as an admin).
+
+| Field | Description |
+|-------|-------------|
+| `email` | Primary key |
+| `username` | Display name |
+
+Users appear in group-member dropdowns only after they have logged in at least
+once (or been seeded). There is no separate “create user” action in the UI.
+
+### Group
+
+A named set of users used for authorization.
+
+| Field | Description |
+|-------|-------------|
+| `id` | UUID |
+| `name` | Group name |
+| `description` | Short description |
+
+Membership is stored in `GroupUserLink` (`group_id`, `user_email`).
+
+### GroupRole
+
+Assigns a role to a group, either globally or for one Collection (domain).
+
+| Field | Description |
+|-------|-------------|
+| `id` | UUID |
+| `group_id` | Owning group |
+| `role` | One of the roles below |
+| `object` | `NULL` = global role; otherwise the STAC **collection id** |
+
+**Roles**
+
+| Role | Scope | Typical permissions |
+|------|-------|---------------------|
+| `admin` | Global | Keywords, groups, create collections, assign roles |
+| `keyword_editor` | Global | Manage keyword vocabulary (`keyword:all`) |
+| `application_data_steward` | Global | Groups, create collections, assign collection roles |
+| `collection_data_steward` | Collection | Create/update/delete items and the collection |
+| `data_producer` | Collection | Create and update items |
+
+Permissions are derived in application code from the role (there is no
+separate permissions table).
+
+### Facility
+
+A keyword vocabulary container that can be linked to one or more domains.
+
+| Field | Description |
+|-------|-------------|
+| `id` | UUID |
+| `name` | Facility name |
+
+In the Keywords tab this is the top level of the vocabulary. In the Domains
+tab, a domain can link to a facility via a Collection link with
+`rel: "keywords"`.
+
+### Keyword_Group
+
+A named group of keywords inside one or more facilities.
+
+| Field | Description |
+|-------|-------------|
+| `id` | UUID |
+| `group_name_nl` / `group_name_en` | Dutch and English names |
+| `facility_type` | Type filter (for example numerical modelling) |
+
+Linked to facilities through `FacilityKeywordGroupLink`.
+
+### Keyword
+
+A single controlled term.
+
+| Field | Description |
+|-------|-------------|
+| `id` | UUID |
+| `nl_keyword` / `en_keyword` | Dutch and English labels |
+| `external_id` | Optional external identifier |
+| `group_id` | Parent keyword group |
+
+## STAC entities (`pgstac`)
+
+### Collection (Domain)
+
+Represents a **domain**. Important fields used by Fair Data Finder:
+
+| Field | Description |
+|-------|-------------|
+| `id` / `title` | Domain identifier and title |
+| `description` | Domain description |
+| `license` | Set to `proprietary` when created in the UI |
+| `extent` | Spatial bbox and temporal interval |
+| `links` | May include `{ rel: "keywords", id: "<facility UUID>", href: "/facilities/..." }` |
+
+### Item (Dataset)
+
+Represents a **dataset**. Core STAC fields plus Fair Data Finder properties
+are documented under [Metadata schema](metadata-schema.qmd).
+
+| Field | Description |
+|-------|-------------|
+| `id` | Item identifier |
+| `collection` | Parent domain (Collection id) |
+| `geometry` / `bbox` | Spatial footprint; may be `null` |
+| `properties` | Metadata (title, keywords, dates, …) |
+| `assets` | Map of data-access assets |
+
+## What is *not* modelled as an entity
+
+- **Project** — only `properties.projectNumber` on an Item
+- **Domain table** — domains are Collections in pgSTAC
+- **Permission table** — permissions come from the role enum mapping

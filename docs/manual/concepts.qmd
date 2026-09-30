@@ -1,0 +1,110 @@
+---
+title: "Concepts"
+---
+
+Fair Data Finder helps Deltares staff find and register research datasets.
+This page introduces the main ideas used throughout the application. Later
+pages explain how these ideas appear in the [data model](data-model.qmd),
+[metadata](metadata-schema.qmd), and [STAC](stac.qmd).
+
+## Mental model
+
+```{mermaid}
+flowchart LR
+  D[Domain<br/>STAC Collection]
+  F[Keyword facility]
+  KG[Keyword groups]
+  K[Keywords]
+  I[Dataset<br/>STAC Item]
+  A[Assets<br/>data access links]
+  P[projectNumber<br/>optional]
+
+  D -->|contains| I
+  D -->|links to| F
+  F --> KG --> K
+  K -.->|copied onto| I
+  I --> A
+  P -.-> I
+```
+
+## Dataset / record
+
+A **dataset** (also called a registered item or record) is one published
+research data product. In Fair Data Finder it is stored and exposed as a
+[STAC Item](stac.qmd#stac-in-fair-data-finder): a GeoJSON Feature with
+metadata properties, optional geometry, and one or more assets.
+
+In the UI this is what you create under [Register](register.qmd) and find
+under [Search](search.qmd).
+
+## Projects and datasets
+
+There is **no separate Project entity** in the database. A dataset may
+optionally carry a project number in metadata (`properties.projectNumber`).
+The registration form labels the dataset title as *Project title*, but that
+value is stored as the Item's `properties.title`.
+
+In short: a project number is an optional attribute of a dataset, not a
+parent object that owns datasets.
+
+## Metadata
+
+Metadata is the descriptive information attached to a dataset (title,
+description, dates, originators, legal restrictions, keywords, and so on).
+It is stored on the STAC Item's `properties` object and returned by the API.
+See [Metadata schema](metadata-schema.qmd).
+
+## Domains
+
+A **domain** is a topical category for datasets (for example Ecology). In
+the application, Domains are implemented as [STAC Collections](stac.qmd).
+Every dataset belongs to exactly one domain (its `collection`).
+
+Domains are managed in the [Domains](domains.qmd) tab by Data Stewards.
+
+## Keywords
+
+Keywords are a controlled vocabulary used to tag datasets. They live in the
+application database as a three-level hierarchy:
+
+**Facility → Keyword group → Keyword**
+
+A domain (Collection) can be linked to a keyword facility. When you register
+a dataset, selected keywords are **copied onto** the Item as
+`properties.keywords`. Filtering in Search uses those keyword ids.
+
+Managed in the [Keywords](keywords.qmd) tab.
+
+## Data access
+
+How to reach the actual data files or services is recorded as **STAC Assets**
+on the Item: each asset has at least a title, type, and `href` (URL or path).
+Legal context is recorded separately in fields such as `legalRestrictions`
+and `restrictionsOfUse`.
+
+## Spatial and temporal information
+
+| Aspect | How it is represented |
+|--------|------------------------|
+| Spatial footprint | Item `geometry` and `bbox` (GeoJSON). May be `null` for global / non-spatial datasets |
+| Coordinate reference | `properties.spatialReferenceSystem` |
+| Instant in time | `properties.datetime` |
+| Time range | `properties.start_datetime` and `properties.end_datetime` |
+| Publication date | `properties.publication_datetime` |
+
+Datasets without geometry appear in Search as *Global Dataset* and are not
+drawn on the map.
+
+## How this maps to STAC
+
+| Fair Data Finder concept | STAC / storage |
+|--------------------------|----------------|
+| Domain | Collection (pgSTAC) |
+| Dataset / record | Item (pgSTAC) |
+| Data access link | Asset on the Item |
+| Keyword vocabulary | Application tables (`facility`, `keyword_group`, `keyword`) |
+| Keywords on a dataset | Item `properties.keywords` |
+| Project number | Item `properties.projectNumber` only |
+
+The next sections spell out the [data model](data-model.qmd) and the
+[STAC API](stac.qmd).
