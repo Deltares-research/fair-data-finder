@@ -3,3 +3,6 @@
 *.pdf
 user_manual_files
 *.html
+_site
+
+/.quarto/

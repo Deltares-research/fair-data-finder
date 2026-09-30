@@ -1,0 +1,6 @@
+---
+title: "Groups"
+---
+
+Here, user groups can be defined with their respective authorizations. The
+*Groups* tab is only accessible to admins.

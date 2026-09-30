@@ -1,0 +1,68 @@
+project:
+  type: website
+  output-dir: _site
+  # Explicit render list keeps user_manual.qmd (legacy) out of the site.
+  render:
+    - index.qmd
+    - search.qmd
+    - register.qmd
+    - domains.qmd
+    - keywords.qmd
+    - groups.qmd
+    - concepts.qmd
+    - data-model.qmd
+    - metadata-schema.qmd
+    - stac.qmd
+    - api.qmd
+
+website:
+  title: "Fair Data Finder"
+  navbar:
+    background: primary
+    right:
+      - icon: github
+        href: https://github.com/Deltares-research/fair-data-finder
+        aria-label: GitHub
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - text: "Introduction"
+        href: index.qmd
+      - section: "Tabs"
+        contents:
+          - text: "Search"
+            href: search.qmd
+          - text: "Register"
+            href: register.qmd
+          - text: "Domains"
+            href: domains.qmd
+          - text: "Keywords"
+            href: keywords.qmd
+          - text: "Groups"
+            href: groups.qmd
+      - section: "Concepts"
+        contents:
+          - text: "Overview"
+            href: concepts.qmd
+      - section: "Data & Metadata"
+        contents:
+          - text: "Data model"
+            href: data-model.qmd
+          - text: "Metadata schema"
+            href: metadata-schema.qmd
+          - text: "STAC"
+            href: stac.qmd
+      - section: "API"
+        contents:
+          - text: "Overview"
+            href: api.qmd
+  page-navigation: true
+  back-to-top-navigation: true
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    toc-title: "On this page"

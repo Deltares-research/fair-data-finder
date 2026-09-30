@@ -1,0 +1,24 @@
+---
+title: "Domains"
+---
+
+The *Domains* tab is only accessible to Data Stewards. Domains are the expertise
+domains to which each dataset can be assigned. This tab shows a table with
+all registered domains, and which keywords are assigned to each domain. More
+domains can be added by clicking the *Add domain* button. This will open a form
+to add a new domain. Here, you can fill in a description and keyword
+domain, created in [Keywords](keywords.qmd), that belongs to the domain.
+
+::: {.callout-note}
+Why Domains? We were looking for some topical way to categorize datasets. We
+think this works better than using management layers, as these are changed quite
+frequently. For example, in the last years a management layer has been removed
+(RIP units), departments have been renamed, and even split up and redistributed
+over other departments. This would entail frequent changes to the categories,
+which means frequent updates to existing registered items in the database. The
+topical domains have been created together with the Data Stewards, thus should
+pretty much cover the organization. We expect these topical domains to be more
+stable, although more domains can turn out to be necessary when Deltares
+broadens its scope and threads new topical territories. Contact the Data
+Stewards if you think a new domain is necessary.
+:::

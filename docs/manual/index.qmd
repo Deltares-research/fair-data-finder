@@ -1,0 +1,26 @@
+---
+title: "Introduction"
+---
+
+This document describes how to use the Deltares Fair Data Finder. The Fair Data
+Finder consists of 5 tabs, some of which are only limited to a specific set
+of users:
+
+| Tab | Access |
+|-----|--------|
+| [Search](search.qmd) | SSO logged in users |
+| [Register](register.qmd) | Deltares employees |
+| [Domains](domains.qmd) | Data stewards |
+| [Keywords](keywords.qmd) | Data stewards |
+| [Groups](groups.qmd) | Admins |
+
+## Logging in
+
+You will be able to see much more functionality when you log in. Clicking
+"Login" will forward you to the login screen. Here, you'll be able to log in
+using your Deltares credentials.
+
+::: {.callout-tip}
+If you are a Deltares employee and use the Edge browser, you'll be
+automatically logged in when clicking "Login".
+:::
