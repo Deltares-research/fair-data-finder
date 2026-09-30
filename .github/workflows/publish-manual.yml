@@ -1,0 +1,66 @@
+name: Publish User Manual to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/manual/**'
+      - '.github/workflows/publish-manual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time; cancel in-progress runs on new pushes.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Render Quarto manual
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          pixi-version: latest
+          manifest-path: docs/manual/pixi.toml
+
+      - name: Render HTML manual
+        working-directory: docs/manual
+        run: pixi run render_html
+
+      - name: Collect site artefacts
+        # Pages needs an index.html entry point.
+        # Copy user_manual.html → _site/index.html and include the
+        # companion user_manual_files/ asset directory if Quarto created it.
+        run: |
+          mkdir -p docs/manual/_site
+          cp docs/manual/user_manual.html docs/manual/_site/index.html
+          if [ -d docs/manual/user_manual_files ]; then
+            cp -r docs/manual/user_manual_files docs/manual/_site/
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/manual/_site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

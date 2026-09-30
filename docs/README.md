@@ -7,6 +7,7 @@ This is the single source of truth for Fair Data Finder developer documentation.
 | Document | Description |
 |----------|-------------|
 | [Installation](installation.md) | Start the full stack with Docker Compose, frontend hot-reload workflow, verify, stop and clean up, logging in with SSO |
+| [How to use](how-to-use.md) | Users list (SSO), group management permissions |
 
 ## Architecture
 
