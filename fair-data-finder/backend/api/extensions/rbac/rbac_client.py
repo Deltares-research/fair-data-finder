@@ -217,9 +217,8 @@ class RBACClient:
             select(Group)
             .where(Group.id == uuid)
             .outerjoin(Group.roles.and_(GroupRole.object.is_(None)))
-            .outerjoin(Group.users)
             .options(contains_eager(Group.roles))
-            .options(contains_eager(Group.users))
+            .options(selectinload(Group.users))
         )
 
         result = session.exec(statement).first()
