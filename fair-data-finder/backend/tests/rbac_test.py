@@ -425,6 +425,35 @@ async def test_editor_role_permissions(
     )
 
 
+# test PATCH requires the same permissions as PUT
+@pytest.mark.asyncio
+async def test_patch_requires_update_permission(
+    authenticated_client: AsyncClient,
+    user: User,
+):
+    collection_id = "test-collection"
+
+    response = await authenticated_client.patch(
+        f"/collections/{collection_id}/items/test-item",
+        json={"properties": {"title": "Changed"}},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()["detail"]
+        == f"User {user.email} does not have permission {Permission.ItemUpdate.value} on collection {collection_id}"
+    )
+
+    response = await authenticated_client.patch(
+        f"/collections/{collection_id}",
+        json={"description": "Changed"},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()["detail"]
+        == f"User {user.email} does not have permission {Permission.CollectionUpdate.value} on collection {collection_id}"
+    )
+
+
 # test global admin permissions endpoint
 @pytest.mark.asyncio
 async def test_get_global_permissions(

@@ -115,6 +115,10 @@ class RBACExtension(ApiExtension):
             ): Permission.ItemUpdate,
             ScopeKey(
                 path="/collections/{collection_id}/items/{item_id}",
+                method="PATCH",
+            ): Permission.ItemUpdate,
+            ScopeKey(
+                path="/collections/{collection_id}/items/{item_id}",
                 method="DELETE",
             ): Permission.ItemDelete,
             ScopeKey(
@@ -128,6 +132,10 @@ class RBACExtension(ApiExtension):
             ScopeKey(
                 path="/collections/{collection_id}",
                 method="PUT",
+            ): Permission.CollectionUpdate,
+            ScopeKey(
+                path="/collections/{collection_id}",
+                method="PATCH",
             ): Permission.CollectionUpdate,
             ScopeKey(
                 path="/collections/{collection_id}",
