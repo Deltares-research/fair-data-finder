@@ -18,7 +18,9 @@ from api.database.models import (  # type: ignore
     GroupPublic,
     GroupRole,
     GroupUserLink,
+    ItemOwner,
     OKResponse,
+    OwnedItem,
     Permission,
     Role,
     User,
@@ -594,6 +596,26 @@ class RBACClient:
                 permissions=role_permissions[role.role],
             )
             for role in collection_roles
+        ]
+
+    def get_owned_items(self, user: UserDep, session: SessionDep) -> List[OwnedItem]:
+        """Get the items created by the current user.
+
+        Args:
+            user: Current authenticated user
+            session: Database session
+
+        Returns:
+            List of OwnedItem objects with the collection and item ID
+        """
+        owners = session.exec(
+            select(ItemOwner).where(
+                func.lower(ItemOwner.owner_email) == func.lower(user.email)
+            )
+        ).all()
+        return [
+            OwnedItem(collection_id=owner.collection_id, item_id=owner.item_id)
+            for owner in owners
         ]
 
     def remove_group_global_role(

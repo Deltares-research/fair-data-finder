@@ -15,6 +15,7 @@ from api.database.models import (  # type: ignore
     GroupGlobalRoleResponse,
     GroupPublic,
     OKResponse,
+    OwnedItem,
     Permission,
     Role,
     User,
@@ -106,6 +107,7 @@ class RBACExtension(ApiExtension):
         self.add_remove_collection_group_role()
         self.add_get_group_collection_roles()
         self.add_get_collection_permissions()
+        self.add_get_owned_items()
         app.include_router(self.router, tags=["RBAC Extension"])
 
         # A list of the collection endpoints and the permissions required to access them
@@ -713,6 +715,15 @@ class RBACExtension(ApiExtension):
             path="/collection-permissions",
             endpoint=self.client.get_collection_permissions,
             response_model=list[CollectionPermission],
+            methods=["GET"],
+        )
+
+    def add_get_owned_items(self):
+        self.router.add_api_route(
+            name="Get items created by the current user",
+            path="/owned-items",
+            endpoint=self.client.get_owned_items,
+            response_model=list[OwnedItem],
             methods=["GET"],
         )
 

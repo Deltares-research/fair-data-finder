@@ -282,6 +282,10 @@ class ItemOwner(SQLModel, table=True):
     owner_email: str
 
 
+class OwnedItem(SQLModel):
+    collection_id: str
+    item_id: str
+
 class GroupCollectionRoleResponse(GroupGlobalRoleResponse):
     object: str
 

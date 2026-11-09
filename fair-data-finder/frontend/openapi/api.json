@@ -1030,6 +1030,31 @@
               "application/geo+json": {}
             }
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "title": "ErrorResponse",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2435,6 +2460,31 @@
               "application/geo+json": {}
             }
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "title": "ErrorResponse",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -2972,6 +3022,16 @@
             },
             "description": "Bad Request"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -2996,16 +3056,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -3129,6 +3179,16 @@
             },
             "description": "Bad Request"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -3153,16 +3213,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -3614,6 +3664,16 @@
             },
             "description": "Bad Request"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -3638,16 +3698,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -3886,6 +3936,16 @@
             },
             "description": "Bad Request"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -3910,16 +3970,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -3977,6 +4027,16 @@
             },
             "description": "Bad Request"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -4001,16 +4061,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "422": {
             "description": "Validation Error",
@@ -5206,6 +5256,37 @@
                   },
                   "type": "array",
                   "title": "Response Get Permissions On Collection Collection Permissions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/owned-items": {
+      "get": {
+        "tags": [
+          "RBAC Extension"
+        ],
+        "summary": "Get Items Created By The Current User",
+        "description": "Get the items created by the current user.\n\nArgs:\n    user: Current authenticated user\n    session: Database session\n\nReturns:\n    List of OwnedItem objects with the collection and item ID",
+        "operationId": "Get_items_created_by_the_current_user_owned_items_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OwnedItem"
+                  },
+                  "type": "array",
+                  "title": "Response Get Items Created By The Current User Owned Items Get"
                 }
               }
             }
@@ -6736,7 +6817,7 @@
             "anyOf": [
               {
                 "type": "number",
-                "exclusiveMinimum": 0
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
@@ -7120,11 +7201,11 @@
             "facility_type": "Facility type",
             "group_name_en": "Keyword group",
             "group_name_nl": "Sleutelwoord groep",
-            "id": "0e49124e-00f8-4268-ab6e-5c2735aaee67",
+            "id": "df03eba1-88a8-4699-af46-03ee4cf10132",
             "keywords": [
               {
                 "en_keyword": "Keyword",
-                "id": "c3297ace-c879-48c1-bb44-4fdf491cb075",
+                "id": "67f9e826-9ecc-41f4-886a-fac200e67c0d",
                 "nl_keyword": "Sleutelwoord"
               }
             ]
@@ -7794,6 +7875,24 @@
         "type": "object",
         "title": "OpenID",
         "description": "Class (schema) to represent information got from sso provider in a common form."
+      },
+      "OwnedItem": {
+        "properties": {
+          "collection_id": {
+            "type": "string",
+            "title": "Collection Id"
+          },
+          "item_id": {
+            "type": "string",
+            "title": "Item Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection_id",
+          "item_id"
+        ],
+        "title": "OwnedItem"
       },
       "PaginationLink": {
         "properties": {
@@ -9035,7 +9134,7 @@
             "anyOf": [
               {
                 "type": "integer",
-                "exclusiveMinimum": 0
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"

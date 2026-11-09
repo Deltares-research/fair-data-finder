@@ -244,3 +244,16 @@ def test_collection_permissions_include_whole_app_item_permissions(
     )
 
     assert set(permissions) == {Permission.ItemCreate, Permission.ItemUpdate}
+
+
+@pytest.mark.asyncio
+async def test_owned_items_endpoint(
+    authenticated_client, user: User, db_session: Session
+):
+    _set_owner(db_session, "mine", user.email.upper())
+    _set_owner(db_session, "theirs", "someone.else@deltares.nl")
+
+    response = await authenticated_client.get("/owned-items")
+
+    assert response.status_code == 200
+    assert response.json() == [{"collection_id": COLLECTION_ID, "item_id": "mine"}]
