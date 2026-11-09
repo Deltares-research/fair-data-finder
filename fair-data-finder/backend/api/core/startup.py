@@ -4,11 +4,13 @@ from pathlib import Path
 from alembic import command
 from alembic.config import Config
 from api.config import APISettings
-from api.database.models import Group, GroupRole, Role, User
+from api.database.models import Group, GroupRole, GroupUserLink, Role, User
 from sqlmodel import Session, create_engine, select
 from stac_fastapi.types.config import Settings
 
 _LOGGER = logging.getLogger("uvicorn.default")
+
+ALL_DELTARES_GROUP = "All Deltares"
 
 
 def run_migrations():
@@ -92,3 +94,62 @@ def create_admin_users():
             session.commit()
             session.refresh(admin_role)
             _LOGGER.info("Admin role created")
+
+
+def ensure_all_deltares_group(session: Session) -> Group:
+    """Return the "All Deltares" group, creating it and its role if needed.
+
+    The group has the whole-app data_producer role, so its members can add
+    items to every collection and edit the items they created.
+    """
+    group = session.exec(select(Group).where(Group.name == ALL_DELTARES_GROUP)).first()
+    if group is None:
+        _LOGGER.info(f"Creating group {ALL_DELTARES_GROUP}")
+        group = Group(
+            name=ALL_DELTARES_GROUP,
+            description="Every user; can add items and edit their own items",
+        )
+        session.add(group)
+        session.commit()
+        session.refresh(group)
+
+    role = session.exec(
+        select(GroupRole).where(
+            GroupRole.group_id == group.id,
+            GroupRole.role == Role.DATA_PRODUCER,
+            GroupRole.object.is_(None),
+        )
+    ).first()
+    if role is None:
+        _LOGGER.info(f"Assigning data_producer role to group {ALL_DELTARES_GROUP}")
+        session.add(GroupRole(group_id=group.id, role=Role.DATA_PRODUCER, object=None))
+        session.commit()
+    return group
+
+
+def add_to_all_deltares_group(session: Session, email: str) -> None:
+    """Add a user to the "All Deltares" group if not already a member."""
+    group = ensure_all_deltares_group(session)
+    if session.get(GroupUserLink, (group.id, email)) is None:
+        _LOGGER.info(f"Adding user {email} to group {ALL_DELTARES_GROUP}")
+        session.add(GroupUserLink(group_id=group.id, user_email=email))
+        session.commit()
+
+
+def create_all_deltares_group() -> None:
+    """Create the "All Deltares" group and add all existing users to it."""
+    settings: APISettings = Settings.get()
+    engine = create_engine(settings.db_connection_url)
+    with Session(engine) as session:
+        group = ensure_all_deltares_group(session)
+        members = set(
+            session.exec(
+                select(GroupUserLink.user_email).where(
+                    GroupUserLink.group_id == group.id
+                )
+            ).all()
+        )
+        for email in session.exec(select(User.email)).all():
+            if email not in members:
+                session.add(GroupUserLink(group_id=group.id, user_email=email))
+        session.commit()

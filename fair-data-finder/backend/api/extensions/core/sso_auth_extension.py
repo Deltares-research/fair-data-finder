@@ -8,6 +8,7 @@ from typing import (
 
 from authlib.jose import Key, OctKey, jwt
 from api.config import APISettings
+from api.core.startup import add_to_all_deltares_group
 from api.database.db import get_session
 from api.database.models import User
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Security
@@ -206,7 +207,7 @@ class SSOAuthExtension(ApiExtension):
 def add_user(
     user: OpenID,
 ):
-    """Add user to database."""
+    """Add user to database and to the "All Deltares" group."""
     _LOGGER.info(f"Adding user {user.email} to database")
     session: Session = next(get_session())
     db_user = session.get(entity=User, ident=user.email)
@@ -217,6 +218,7 @@ def add_user(
         session.refresh(db_user)
     else:
         _LOGGER.debug(f"User {user.email} already exists in database")
+    add_to_all_deltares_group(session, db_user.email)
 
 
 UserDep = Annotated[User, Depends(SSOAuthExtension.get_logged_user)]

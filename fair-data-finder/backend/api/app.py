@@ -27,7 +27,11 @@ from stac_fastapi.types.config import Settings
 
 from api.config import APISettings
 from api.core.stacdms import StacDmsApi
-from api.core.startup import create_admin_users, run_migrations
+from api.core.startup import (
+    create_admin_users,
+    create_all_deltares_group,
+    run_migrations,
+)
 from api.database.db import create_db_engine
 from api.extensions.core.sso_auth_extension import SSOAuthExtension
 from api.extensions.keywords.keyword_extension import KeywordExtension
@@ -84,6 +88,7 @@ post_request_model = create_post_request_model(extensions, base_model=PgstacSear
 async def lifespan(app: FastAPI):
     run_migrations()
     create_admin_users()
+    create_all_deltares_group()
     await connect_to_db(app, add_write_connection_pool=True)
     yield
     await close_db_connection(app)
