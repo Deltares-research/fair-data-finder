@@ -29,8 +29,9 @@ from stac_fastapi.types import stac as stac_types
 from fastapi import HTTPException
 from stac_pydantic import Item, ItemCollection
 
+from api.core.dependencies import get_user_collection_roles, roles_grant
 from api.database.db import create_db_engine
-from api.database.models import ItemOwner
+from api.database.models import ItemOwner, Permission
 from api.extensions.core.sso_auth_extension import COOKIE_NAME, SSOAuthExtension
 
 
@@ -79,6 +80,15 @@ def delete_item_owners(collection_id: str, item_id: str | None = None) -> None:
             statement = statement.where(ItemOwner.item_id == item_id)
         session.execute(statement)
         session.commit()
+
+
+def _has_collection_role_permission(
+    email: str, collection_id: str, permission: Permission
+) -> bool:
+    """Check if the user has the permission through a role on the collection."""
+    with Session(create_db_engine()) as session:
+        collection_roles, _ = get_user_collection_roles(session, email, collection_id)
+        return roles_grant(collection_roles, permission)
 
 
 class NullGeometryTransactionsClient(TransactionsClient):
@@ -182,12 +192,25 @@ class OwnerTrackingBulkTransactionsClient(BulkTransactionsClient):
         """Insert or upsert items and record the current user as owner of new items.
 
         For upserts the owner of an item that already has one is kept.
+        Upserts can overwrite items, so they need a role on the collection
+        itself; whole-app roles are not enough.
         """
         owner_email = _current_user_email(request)
+        collection_id = request.path_params["collection_id"]
+        if items.method == BulkTransactionMethod.UPSERT and not await run_in_threadpool(
+            _has_collection_role_permission,
+            owner_email,
+            collection_id,
+            Permission.ItemUpdate,
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=f"User {owner_email} does not have permission {Permission.ItemUpdate.value} on collection {collection_id}",
+            )
         result = await super().bulk_item_insert(items, request, **kwargs)
         await run_in_threadpool(
             record_item_owners,
-            request.path_params["collection_id"],
+            collection_id,
             list(items.items.keys()),
             owner_email,
             items.method == BulkTransactionMethod.INSERT,

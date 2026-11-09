@@ -1,7 +1,11 @@
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from api.core.dependencies import UserDep
+from api.core.dependencies import (
+    WHOLE_APP_ITEM_PERMISSIONS,
+    UserDep,
+    get_user_collection_roles,
+)
 from api.database.db import SessionDep
 from api.database.models import (  # type: ignore
     CollectionPermission,
@@ -547,20 +551,20 @@ class RBACClient:
         Returns:
             List of Permission objects that the current user has on the collection
         """
-        collection_roles: list[GroupRole] = session.exec(
-            select(GroupRole)
-            .join(GroupUserLink, GroupRole.group_id == GroupUserLink.group_id)
-            .where(
-                GroupRole.object == collection_id,
-                func.lower(GroupUserLink.user_email) == func.lower(user.email),
-            )
-        ).all()
+        collection_roles, whole_app_roles = get_user_collection_roles(
+            session, user.email, collection_id
+        )
 
         # Create a flat list of distinct permissions from all roles
         permissions = set()
         for role in collection_roles:
             # Add all permissions from this role to our set
             permissions.update(role_permissions[role.role])
+        # Whole-app roles only count for item permissions
+        for role in whole_app_roles:
+            permissions.update(
+                set(role_permissions[role.role]) & WHOLE_APP_ITEM_PERMISSIONS
+            )
         return list(permissions)
 
     def get_collection_permissions(

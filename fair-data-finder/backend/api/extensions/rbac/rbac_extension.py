@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from api.core.dependencies import (
+    user_can_update_item,
     user_has_collection_permission,
     user_has_global_permission,
 )
@@ -212,18 +213,17 @@ class RBACExtension(ApiExtension):
 
                     # Add dependencies for collection routes
                     if endpoint in collection_route_dependencies:
+                        permission = collection_route_dependencies[endpoint]
+                        # Item updates also check who created the item
+                        dependency = (
+                            user_can_update_item()
+                            if permission == Permission.ItemUpdate
+                            else user_has_collection_permission(permission=permission)
+                        )
                         add_route_dependencies(
                             app.router.routes,
                             [endpoint.to_scope()],
-                            [
-                                Depends(
-                                    user_has_collection_permission(
-                                        permission=collection_route_dependencies[
-                                            endpoint
-                                        ]
-                                    )
-                                )
-                            ],
+                            [Depends(dependency)],
                         )
                         add_route_responses(
                             app.router.routes,
