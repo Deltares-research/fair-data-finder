@@ -19,8 +19,10 @@ from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from stac_fastapi.pgstac.extensions.filter import FiltersClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
-from stac_fastapi.pgstac.transactions import BulkTransactionsClient
-from api.extensions.core.transactions_client import NullGeometryTransactionsClient
+from api.extensions.core.transactions_client import (
+    NullGeometryTransactionsClient,
+    OwnerTrackingBulkTransactionsClient,
+)
 from stac_fastapi.types.config import Settings
 
 from api.config import APISettings
@@ -56,7 +58,7 @@ extensions = [
         client=NullGeometryTransactionsClient(),
         settings=settings,
     ),
-    BulkTransactionExtension(client=BulkTransactionsClient()),
+    BulkTransactionExtension(client=OwnerTrackingBulkTransactionsClient()),
     FieldsExtension(),
     SortExtension(),
     TokenPaginationExtension(),

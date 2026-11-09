@@ -274,6 +274,14 @@ class CollectionPermission(SQLModel):
     permissions: List[Permission]
 
 
+class ItemOwner(SQLModel, table=True):
+    """The user who created an item. Items created before this table existed have no owner."""
+
+    collection_id: str = Field(primary_key=True)
+    item_id: str = Field(primary_key=True)
+    owner_email: str
+
+
 class GroupCollectionRoleResponse(GroupGlobalRoleResponse):
     object: str
 
