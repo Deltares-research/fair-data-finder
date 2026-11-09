@@ -94,6 +94,51 @@ export const usePermissionsStore = defineStore('permissions', () => {
     return false
   }
 
+  // Item permissions: roles on a collection allow editing every item in it,
+  // whole-app roles only allow editing the items the user created.
+  const collectionPermissionsList = ref([])
+  const ownedItems = ref([])
+
+  async function fetchItemPermissions($api) {
+    try {
+      const [ collectionData, ownedData ] = await Promise.all([
+        $api('/collection-permissions', { credentials: 'include' }),
+        $api('/owned-items', { credentials: 'include' }),
+        fetchPermissions($api),
+      ])
+      collectionPermissionsList.value = collectionData || []
+      ownedItems.value = ownedData || []
+      return true
+    } catch (err) {
+      console.error('Failed to fetch item permissions:', err?.message || err?.toString() || 'Unknown error')
+      collectionPermissionsList.value = []
+      ownedItems.value = []
+      return false
+    }
+  }
+
+  function hasPermissionOnCollection(collectionId, permission) {
+    return collectionPermissionsList.value.some(entry =>
+      entry.collection_id === collectionId &&
+      entry.permissions?.includes(permission),
+    )
+  }
+
+  function isOwnItem(collectionId, itemId) {
+    return ownedItems.value.some(owned =>
+      owned.collection_id === collectionId && owned.item_id === itemId,
+    )
+  }
+
+  function canEditItem(collectionId, itemId) {
+    return hasPermissionOnCollection(collectionId, 'item:update') ||
+      (hasPermission('item:update') && isOwnItem(collectionId, itemId))
+  }
+
+  function canDeleteItem(collectionId) {
+    return hasPermissionOnCollection(collectionId, 'item:delete')
+  }
+
   function clearError() {
     error.value = null
   }
@@ -112,6 +157,9 @@ export const usePermissionsStore = defineStore('permissions', () => {
     requirePermission,
     fetchCollectionPermissions,
     hasCollectionPermission,
+    fetchItemPermissions,
+    canEditItem,
+    canDeleteItem,
     clearError,
   }
 })

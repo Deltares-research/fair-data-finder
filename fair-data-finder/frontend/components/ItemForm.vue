@@ -648,6 +648,7 @@
   // State
   const collections = ref([])
   const collectionPermissions = ref([])
+  const canCreateInAll = ref(false)
   const keywordsGroups = ref([])
   const isSubmitting = ref(false)
   const selectedKeywords = ref([])
@@ -719,7 +720,7 @@
       // For edit: include collections with item:create permission + current collection
       const currentCollectionId = formData.value?.collection
       const filteredCollections = allCollections.filter(collection => {
-        if (collection.id === currentCollectionId) {
+        if (collection.id === currentCollectionId || canCreateInAll.value) {
           return true
         }
         return permissions.some(permission =>
@@ -799,10 +800,12 @@
       const result = await fetchCollectionsWithCreatePermission()
       collections.value = result.collections
       collectionPermissions.value = result.permissions
+      canCreateInAll.value = result.canCreateInAll
     } catch (error) {
       console.error('Failed to fetch collections:', error)
       collections.value = []
       collectionPermissions.value = []
+      canCreateInAll.value = false
     }
   }
 

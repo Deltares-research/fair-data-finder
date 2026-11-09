@@ -83,17 +83,22 @@ export async function fetchCollectionPermissions() {
  * @returns {Promise<Object>} Object with filtered collections and permissions
  */
 export async function fetchCollectionsWithCreatePermission(options = {}) {
+  const { $api } = useNuxtApp()
+
   try {
-    const [ collectionsData, permissionsData ] = await Promise.all([
+    const [ collectionsData, permissionsData, globalPermissions ] = await Promise.all([
       fetchCollections(options),
       fetchCollectionPermissions(),
+      $api('/permissions', { credentials: 'include' }),
     ])
 
     const allCollections = collectionsData?.collections || []
     const permissions = permissionsData || []
+    // A whole-app item:create permission applies to every collection
+    const canCreateInAll = (globalPermissions || []).includes('item:create')
 
     // Filter collections by item:create permission
-    const filteredCollections = allCollections.filter(collection => {
+    const filteredCollections = canCreateInAll ? allCollections : allCollections.filter(collection => {
       return permissions.some(permission =>
         permission.collection_id === collection.id &&
         permission.permissions?.includes('item:create'),
@@ -103,6 +108,7 @@ export async function fetchCollectionsWithCreatePermission(options = {}) {
     return {
       collections: filteredCollections,
       permissions,
+      canCreateInAll,
     }
   } catch (error) {
     console.error('Failed to fetch collections with permissions:', error)
