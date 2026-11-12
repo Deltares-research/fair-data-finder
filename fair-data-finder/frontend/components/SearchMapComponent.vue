@@ -7,7 +7,6 @@
       :center="[5.1, 52.07]"
       :zoom="10.5"
       @mb-created="onMapCreated"
-      @mb-click="onMapClick"
     >
       <!-- Points: clustered marker layer -->
       <MapboxCluster
@@ -23,7 +22,6 @@
         :clusters-paint="clustersPaint"
         :cluster-count-layout="clusterCountLayout"
         :cluster-count-paint="clusterCountPaint"
-        @mb-feature-click="onFeatureClicked"
         @mb-cluster-click="onClusterClicked"
       />
 
@@ -59,32 +57,20 @@
         :enabled-tools="['polygon']"
         @change="onDrawChange"
       />
-      
-      <MapPopup
-        v-if="selectedFeature && popupCoordinates && Array.isArray(popupCoordinates) && popupCoordinates.length === 2"
-        :selected-feature="selectedFeature"
-        :coordinates="popupCoordinates"
-        :close-button="false"
-        :close-on-click="true"
-        :close-on-move="false"
-        max-width="420px"
-        @close="onPopupClose"
-      />
     </mapbox-map>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, watch, nextTick, onUnmounted, onActivated } from 'vue'
+  import { ref, computed, watch, nextTick, onActivated } from 'vue'
   import { useRuntimeConfig } from '#app'
   import { MapboxMap, MapboxCluster, MapboxNavigationControl, MapboxLayer } from '@studiometa/vue-mapbox-gl'
-  import { center, bbox } from '@turf/turf'
+  import { bbox } from '@turf/turf'
   import { isEqual } from 'lodash-es'
   import { useSearchPageStore } from '~/stores/searchPage'
   import MapControlsZoom from '@/components/MapControlsZoom.vue'
   import MapCustomImage from '@/components/MapCustomImage.vue'
   import MapSelectTool from '@/components/MapSelectTool.vue'
-  import MapPopup from '@/components/MapPopup.vue'
   import * as geojsonBounds from 'geojson-bounds'
   import {
     unclusteredPointLayout,
@@ -102,11 +88,6 @@
   const mapInstance = ref(null)
   const accessToken = useRuntimeConfig().public.mapboxToken
   const imageLoaded = ref(false)
-  const selectedFeature = ref(null)
-  const justClickedFeature = ref(false)
-  const isDrawingActive = ref(false)
-  let mapClickTimeout = null
-  
   const store = useSearchPageStore()
   
   // Draw control reference
@@ -185,46 +166,6 @@
     }
   )
   
-  // Watch for changes to selectedFeatureId from store (e.g., when clicking a card in the list)
-  watch(
-    () => store.selectedFeatureId,
-    (newFeatureId) => {
-      if (!newFeatureId) {
-        selectedFeature.value = null
-        justClickedFeature.value = false
-        return
-      }
-      
-      if (selectedFeature.value?.id === newFeatureId) {
-        return
-      }
-      
-      const isMapClickUpdate = justClickedFeature.value && 
-        selectedFeature.value?.id === newFeatureId
-      
-      if (isMapClickUpdate) {
-        return
-      }
-      
-      justClickedFeature.value = false
-      
-      if (mapClickTimeout) {
-        clearTimeout(mapClickTimeout)
-        mapClickTimeout = null
-      }
-      
-      if (store.featureCollectionWithGeometry && store.featureCollectionWithGeometry.features) {
-        const feature = store.featureCollectionWithGeometry.features.find(f => f.id === newFeatureId)
-        if (feature) {
-          selectedFeature.value = feature
-          if (feature.bbox) {
-            store.setSelectedFeatureBbox(feature.bbox)
-          }
-        }
-      }
-    }
-  )
-  
   // Timestamp that updates when featureCollectionWithGeometry changes — used as layer key
   const layerTimestamp = ref(Date.now())
   
@@ -236,67 +177,9 @@
     { deep: true }
   )
   
-  // Track cleanup functions for direct Mapbox GL click listeners on polygon/line layers.
-  // We bypass MapboxLayer's emit system because the component declares no `emits`, so
-  // emit('mb-click') falls through to the root <div> instead of calling the parent handler.
-  let layerClickCleanup = []
-
-  watch(
-    mapLayers,
-    (newLayers) => {
-      // Remove listeners registered for the previous set of layers
-      layerClickCleanup.forEach(fn => fn())
-      layerClickCleanup = []
-
-      if (!mapInstance.value || !newLayers.length) return
-
-      newLayers.forEach(layer => {
-        const handler = (event) => onLayerFeatureClicked(event)
-        mapInstance.value.on('click', layer.id, handler)
-        layerClickCleanup.push(() => {
-          mapInstance.value?.off('click', layer.id, handler)
-        })
-      })
-    },
-    { flush: 'post' }
-  )
-
-  onUnmounted(() => {
-    layerClickCleanup.forEach(fn => fn())
-    layerClickCleanup = []
-  })
-  
   const clusterKey = computed(() => {
     if (!pointFeatures.value) return null
     return `cluster-${layerTimestamp.value}`
-  })
-  
-  // Popup coordinates computed property
-  const popupCoordinates = computed(() => {
-    if (!selectedFeature.value?.geometry) {
-      return null
-    }
-    
-    const geometry = selectedFeature.value.geometry
-    
-    if (geometry.type === 'Point') {
-      const coords = geometry.coordinates
-      if (Array.isArray(coords) && coords.length >= 2) {
-        return [coords[0], coords[1]]
-      }
-      return null
-    }
-    
-    try {
-      const centerPoint = center(selectedFeature.value)
-      const coords = centerPoint.geometry.coordinates
-      if (Array.isArray(coords) && coords.length >= 2) {
-        return [coords[0], coords[1]]
-      }
-      return null
-    } catch {
-      return null
-    }
   })
 
   const bounds = computed(() => {
@@ -322,111 +205,12 @@
     mapInstance.value?.resize()
   })
 
-  // Shared feature-selection logic used by map marker and card clicks
-  async function selectFeature(featureId) {
-    if (!featureId) {
-      justClickedFeature.value = false
-      return
-    }
-
-    let matchedFeature = null
-    if (store.featureCollectionWithGeometry && store.featureCollectionWithGeometry.features) {
-      matchedFeature = store.featureCollectionWithGeometry.features.find(f => f.id === featureId)
-    }
-
-    if (!matchedFeature) return
-
-    const currentId = selectedFeature.value?.id
-    if (currentId && currentId === matchedFeature.id) {
-      setTimeout(() => { justClickedFeature.value = false }, 100)
-      return
-    }
-
-    selectedFeature.value = matchedFeature
-    store.setSelectedFeature(matchedFeature.id)
-    if (matchedFeature.bbox) {
-      store.setSelectedFeatureBbox(matchedFeature.bbox)
-    }
-
-    await nextTick()
-    setTimeout(() => { justClickedFeature.value = false }, 400)
-  }
-  
-  async function onFeatureClicked(feature, event) {
-    if (isDrawingActive.value) return
-
-    if (mapClickTimeout) {
-      clearTimeout(mapClickTimeout)
-      mapClickTimeout = null
-    }
-    
-    justClickedFeature.value = true
-    
-    if (event) {
-      if (event.originalEvent) {
-        event.originalEvent.stopPropagation()
-        event.originalEvent.preventDefault()
-      }
-      if (event.stopPropagation) {
-        event.stopPropagation()
-      }
-    }
-    
-    const featureId = feature.properties?.id || feature.id
-    await selectFeature(featureId)
+  // Prevents the cluster from zooming in when clicked; the map is not clickable.
+  function onClusterClicked(_clusterId, event) {
+    event?.preventDefault()
   }
 
-  // Click handler for MapboxLayer (polygon / line layers)
-  async function onLayerFeatureClicked(event) {
-    if (isDrawingActive.value) return
-
-    if (mapClickTimeout) {
-      clearTimeout(mapClickTimeout)
-      mapClickTimeout = null
-    }
-
-    justClickedFeature.value = true
-
-    if (event?.originalEvent) {
-      event.originalEvent.stopPropagation()
-    }
-
-    const feature = event?.features?.[0]
-    const featureId = feature?.properties?.id || feature?.id
-    await selectFeature(featureId)
-  }
-  
-  function onClusterClicked() {
-    selectedFeature.value = null
-    store.clearSelectedFeature()
-  }
-  
-  function onMapClick() {
-    if (isDrawingActive.value) return
-
-    if (mapClickTimeout) {
-      clearTimeout(mapClickTimeout)
-    }
-    
-    mapClickTimeout = setTimeout(() => {
-      mapClickTimeout = null
-      if (justClickedFeature.value) {
-        return
-      }
-      selectedFeature.value = null
-      store.clearSelectedFeature()
-    }, 150)
-  }
-
-  function onPopupClose() {
-    if (!justClickedFeature.value && !store.selectedFeatureId) {
-      selectedFeature.value = null
-      store.clearSelectedFeature()
-    }
-  }
-
-  function onDrawChange({ feature, active }) {
-    isDrawingActive.value = !!active
+  function onDrawChange({ feature }) {
     if (isClearingPolygon.value) return
     if (!feature || !feature.geometry) {
       const currentBbox = store.bboxFilter
