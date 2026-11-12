@@ -3,7 +3,7 @@
         "id": "domain",
         "title": "Domain",
         "fields": [
-            { "key": "collection", "label": "Domain", "type": "select" }
+            { "key": "collection", "label": "Domain", "type": "select", "required": true }
         ]
     },
     {
@@ -11,7 +11,7 @@
         "title": "General information",
         "fields": [
             { "key": "projectNumber", "label": "Project number", "type": "text" },
-            { "key": "title", "label": "Project title", "type": "text" },
+            { "key": "title", "label": "Project title", "type": "text", "required": true },
             { "key": "publication_datetime", "label": "Publication date", "type": "date" },
             { "key": "description", "label": "Description", "type": "textarea" },
             { "key": "language", "label": "Language", "type": "select", "options": "languageOptions" },
@@ -47,7 +47,7 @@
         "id": "dateRange",
         "title": "Date Range",
         "fields": [
-            { "key": "start_datetime", "fallbackKey": "datetime", "label": "Start date", "type": "date" },
+            { "key": "start_datetime", "fallbackKey": "datetime", "label": "Start date", "type": "date", "required": true },
             { "key": "end_datetime", "label": "End date (optional)", "type": "date" }
         ]
     },
@@ -72,7 +72,7 @@
         "fields": [
             { "key": "title", "label": "Title of the dataset", "type": "text" },
             { "key": "description", "label": "Description of the dataset", "type": "text" },
-            { "key": "href", "label": "Link to the dataset", "type": "url" },
+            { "key": "href", "label": "Link to the dataset", "type": "url", "required": true },
             { "key": "type", "label": "Type of dataset (e.g. file type)", "type": "text" }
         ]
     },

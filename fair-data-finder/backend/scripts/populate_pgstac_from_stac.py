@@ -21,7 +21,7 @@ PLAN — code still to be written.
 
 SOURCE_URL = "https://dev-fairdatafinder.deltares.nl/api/"
 TARGET_URL = "http://localhost:8000/api"
-DMS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE0N2NlOTBjLTNhM2ItNDM0Ni1iYTMwLTRhZTdmOGNmZjNjYiIsImVtYWlsIjoiSW9hbm5hLk1pY2hhQGRlbHRhcmVzLm5sIiwiZmlyc3RfbmFtZSI6IklvYW5uYSIsImxhc3RfbmFtZSI6Ik1pY2hhIiwiZGlzcGxheV9uYW1lIjoiSW9hbm5hIE1pY2hhIiwicGljdHVyZSI6bnVsbCwicHJvdmlkZXIiOiJtaWNyb3NvZnQiLCJleHAiOjE3OTQ0MDA2OTQsInN1YiI6ImE0N2NlOTBjLTNhM2ItNDM0Ni1iYTMwLTRhZTdmOGNmZjNjYiJ9.uuDB6OLwySpjPzVY71-G6Qz6cMNqIRSL99YS4x4LI44"  # paste the DMS_TOKEN cookie value from your browser after logging in
+DMS_TOKEN = ""  # paste the DMS_TOKEN cookie value from your browser after logging in
 COLLECTION_IDS: list[str] = []
 MAX_ITEMS = 100
 BATCH_SIZE = 50

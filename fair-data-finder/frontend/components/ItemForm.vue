@@ -16,6 +16,9 @@
           v-model="isFormValid"
           @submit.prevent="handleSubmit"
         >
+          <p v-if="!isLoading" class="text-body-2 text-grey-darken-1 mb-4">
+            Fields marked * are required.
+          </p>
           <!-- Loading state -->
           <v-card v-if="isLoading" class="mb-4">
             <v-card-text class="d-flex flex-column align-center justify-center py-12">
@@ -63,7 +66,8 @@
               <v-select
                 v-model="formData.collection"
                 :items="collectionOptions"
-                :label="getFieldLabel('domain', 'collection')"
+                :label="fieldLabel('domain', 'collection')"
+                :rules="fieldRules('domain', 'collection')"
                 variant="outlined"
                 @update:model-value="handleCollectionChange"
               />
@@ -80,16 +84,17 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.projectNumber"
-                    :label="getFieldLabel('general', 'projectNumber')"
+                    :label="fieldLabel('general', 'projectNumber')"
                     variant="outlined"
                     :disabled="!formData.collection"
-                    :rules="[projectNumberRule]"
+                    :rules="fieldRules('general', 'projectNumber', projectNumberRule)"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.title"
-                    :label="getFieldLabel('general', 'title')"
+                    :label="fieldLabel('general', 'title')"
+                    :rules="fieldRules('general', 'title')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     required
@@ -106,7 +111,8 @@
                       <v-text-field
                         v-bind="props"
                         v-model="publicationDateDisplay"
-                        :label="getFieldLabel('general', 'publication_datetime')"
+                        :label="fieldLabel('general', 'publication_datetime')"
+                        :rules="fieldRules('general', 'publication_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -135,7 +141,8 @@
                 <v-col cols="12">
                   <v-textarea
                     v-model="formData.properties.description"
-                    :label="getFieldLabel('general', 'description')"
+                    :label="fieldLabel('general', 'description')"
+                    :rules="fieldRules('general', 'description')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     rows="3"
@@ -146,7 +153,8 @@
                   <v-select
                     v-model="formData.properties.language"
                     :items="languageOptions"
-                    :label="getFieldLabel('general', 'language')"
+                    :label="fieldLabel('general', 'language')"
+                    :rules="fieldRules('general', 'language')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -155,7 +163,8 @@
                   <v-select
                     v-model="formData.properties.legalRestrictions"
                     :items="legalRestrictionsOptions"
-                    :label="getFieldLabel('general', 'legalRestrictions')"
+                    :label="fieldLabel('general', 'legalRestrictions')"
+                    :rules="fieldRules('general', 'legalRestrictions')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -163,7 +172,8 @@
                 <v-col cols="12">
                   <v-textarea
                     v-model="formData.properties.restrictionsOfUse"
-                    :label="getFieldLabel('general', 'restrictionsOfUse')"
+                    :label="fieldLabel('general', 'restrictionsOfUse')"
+                    :rules="fieldRules('general', 'restrictionsOfUse')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     rows="2"
@@ -205,7 +215,8 @@
             <v-card-text>
               <v-textarea
                 v-model="formData.properties.dataQualityInfoStatement"
-                :label="getFieldLabel('dataQuality', 'dataQualityInfoStatement')"
+                :label="fieldLabel('dataQuality', 'dataQualityInfoStatement')"
+                :rules="fieldRules('dataQuality', 'dataQualityInfoStatement')"
                 variant="outlined"
                 :disabled="!formData.collection"
                 rows="3"
@@ -223,7 +234,8 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorDataOrganisation"
-                    :label="getFieldLabel('originatorData', 'originatorDataOrganisation')"
+                    :label="fieldLabel('originatorData', 'originatorDataOrganisation')"
+                    :rules="fieldRules('originatorData', 'originatorDataOrganisation')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -231,11 +243,11 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorDataEmail"
-                    :label="getFieldLabel('originatorData', 'originatorDataEmail')"
+                    :label="fieldLabel('originatorData', 'originatorDataEmail')"
                     variant="outlined"
                     type="email"
                     :disabled="!formData.collection"
-                    :rules="[emailRule]"
+                    :rules="fieldRules('originatorData', 'originatorDataEmail', emailRule)"
                   />
                 </v-col>
               </v-row>
@@ -252,17 +264,18 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorMetaDataOrganisation"
-                    :label="getFieldLabel('originatorMetaData', 'originatorMetaDataOrganisation')"
+                    :label="fieldLabel('originatorMetaData', 'originatorMetaDataOrganisation')"
+                    :rules="fieldRules('originatorMetaData', 'originatorMetaDataOrganisation')"
                     variant="outlined"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorMetaDataEmail"
-                    :label="getFieldLabel('originatorMetaData', 'originatorMetaDataEmail')"
+                    :label="fieldLabel('originatorMetaData', 'originatorMetaDataEmail')"
                     variant="outlined"
                     type="email"
-                    :rules="[emailRule]"
+                    :rules="fieldRules('originatorMetaData', 'originatorMetaDataEmail', emailRule)"
                   />
                 </v-col>
               </v-row>
@@ -287,7 +300,8 @@
                       <v-text-field
                         v-bind="props"
                         v-model="startDateDisplay"
-                        :label="getFieldLabel('dateRange', 'start_datetime')"
+                        :label="fieldLabel('dateRange', 'start_datetime')"
+                        :rules="fieldRules('dateRange', 'start_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -324,7 +338,8 @@
                       <v-text-field
                         v-bind="props"
                         v-model="endDateDisplay"
-                        :label="getFieldLabel('dateRange', 'end_datetime')"
+                        :label="fieldLabel('dateRange', 'end_datetime')"
+                        :rules="fieldRules('dateRange', 'end_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -366,7 +381,8 @@
               <v-select
                 v-model="selectedFacilityType"
                 :items="facilityTypeOptions"
-                :label="getFieldLabel('typeOfOrigin', 'facility_type')"
+                :label="fieldLabel('typeOfOrigin', 'facility_type')"
+                :rules="fieldRules('typeOfOrigin', 'facility_type')"
                 variant="outlined"
                 :disabled="!formData.collection"
                 @update:model-value="handleFacilityTypeChange"
@@ -424,7 +440,8 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.title"
-                      :label="getFieldLabel('storageLocation', 'title')"
+                      :label="fieldLabel('storageLocation', 'title')"
+                      :rules="fieldRules('storageLocation', 'title')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -432,7 +449,8 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.description"
-                      :label="getFieldLabel('storageLocation', 'description')"
+                      :label="fieldLabel('storageLocation', 'description')"
+                      :rules="fieldRules('storageLocation', 'description')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -440,7 +458,8 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.href"
-                      :label="getFieldLabel('storageLocation', 'href')"
+                      :label="fieldLabel('storageLocation', 'href')"
+                      :rules="fieldRules('storageLocation', 'href')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -448,7 +467,8 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.type"
-                      :label="getFieldLabel('storageLocation', 'type')"
+                      :label="fieldLabel('storageLocation', 'type')"
+                      :rules="fieldRules('storageLocation', 'type')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -602,7 +622,6 @@
               type="submit"
               color="primary"
               :loading="isSubmitting"
-              :disabled="!formData.collection || !formData.properties.title"
             >
               Publish project data
             </v-btn>
@@ -625,7 +644,7 @@
   import facilityTypeOptions from '~/configuration/facilityTypeOptions.json'
   import { fetchCollectionsWithCreatePermission, fetchCollectionById, fetchKeywordsByFacilityId } from '~/requests'
   import { fetchItemById, createItem, updateItem } from '~/requests/items'
-  import { parseAndValidateCoordinates, createGeometryFromCoordinates as createGeometry, getGroupTitle, getFieldLabel } from '~/utils/helpers'
+  import { parseAndValidateCoordinates, createGeometryFromCoordinates as createGeometry, getGroupTitle, getFieldLabel, isFieldRequired } from '~/utils/helpers'
   import buildGeoJsonLayer from '~/utils/build-geojson-layer'
   import { useRegisterStore } from '~/stores/register'
 
@@ -687,6 +706,17 @@
   const error = ref(null)
 
   // Field validation rules
+  const requiredRule = (value) => !!String(value ?? '').trim() || 'Please fill in this field'
+
+  // Labels and rules follow the "required" flag in configuration/itemFieldGroups.json
+  function fieldLabel(groupId, key) {
+    return getFieldLabel(groupId, key) + (isFieldRequired(groupId, key) ? ' *' : '')
+  }
+
+  function fieldRules(groupId, key, ...rules) {
+    return isFieldRequired(groupId, key) ? [requiredRule, ...rules] : rules
+  }
+
   const projectNumberRule = (value) => {
     if (!value) return true
     return /^\d+$/.test(value) || 'Project number must be a number'
@@ -970,17 +1000,9 @@
   })
 
   async function handleSubmit() {
-    if (!formData.value?.collection || !formData.value?.properties?.title) {
-      return
-    }
-
-    const { valid } = await formRef.value.validate()
+    const { valid, errors } = await formRef.value.validate()
     if (!valid) {
-      return
-    }
-
-    if (!tempStartDate.value) {
-      alert('Please select a date or date range.')
+      document.getElementById(errors[0]?.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
 

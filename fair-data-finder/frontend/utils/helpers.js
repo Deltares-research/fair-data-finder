@@ -83,6 +83,11 @@ export function getFieldLabel(groupId, key) {
   return group?.fields.find(field => field.key === key)?.label || humanizeKey(key)
 }
 
+export function isFieldRequired(groupId, key) {
+  const group = itemFieldGroups.find(group => group.id === groupId)
+  return group?.fields.find(field => field.key === key)?.required === true
+}
+
 export function firstAssetHref(feature) {
   const assets = feature?.assets
   if (!assets) return null
