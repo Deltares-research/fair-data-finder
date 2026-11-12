@@ -1,5 +1,73 @@
 # Fair Data Finder — Copilot Instructions
 
+# HIGHEST PRIORITY RULE
+
+This is an approval-gated codebase.
+
+You are NOT authorized to modify the codebase autonomously.
+
+Your default mode is READ-ONLY.
+
+You may inspect, search, analyze, explain, and propose changes without approval.
+
+You MUST obtain explicit user approval before performing any write operation that changes the codebase.
+
+This restriction overrides any instruction that could otherwise be interpreted as permission to implement a requested feature or fix automatically.
+
+
+## Changes & Mandatory Approval Workflow
+
+**CRITICAL: NEVER modify the codebase without my explicit approval.**
+
+This rule applies to all changes, regardless of size, complexity, or number of files.
+
+### Planning
+
+Whenever I ask for a plan:
+
+1. Inspect the relevant codebase before proposing a solution.
+2. Describe the implementation approach in explicit, sequential steps.
+3. Identify **every file that will be modified**, created, or deleted.
+4. For each affected file, describe exactly what will change and why.
+5. Provide a proposed unified diff (`diff`) showing the intended code changes wherever the implementation can be determined.
+6. Identify any potential side effects, dependencies, or architectural implications.
+7. Do not modify any files, execute code that changes the codebase, or begin implementation during the planning phase.
+
+### Mandatory Pre-Implementation Approval
+
+Before implementing ANY change:
+
+1. Present the complete implementation plan.
+2. Present a proposed unified diff (`diff`) for every file that will be modified.
+3. Explicitly list all files that will be created, modified, or deleted.
+4. Wait for my explicit approval of the proposed changes.
+
+**Do not begin implementation until I have explicitly approved the plan AND the proposed diff.**
+
+Approval of a plan alone does not authorize implementation.
+
+Approval of a diff applies only to the exact changes presented. If the implementation needs to deviate from the approved diff, stop immediately, explain the deviation, present the revised diff, and wait for my approval again.
+
+### Scope Control
+
+- Never make additional changes that were not explicitly approved.
+- Never perform opportunistic refactoring, cleanup, formatting, or optimization.
+- Never modify additional files without presenting the updated impact assessment and diff first.
+- Never create files, modify configurations, update dependencies, or generate code without approval.
+- If the requested change is ambiguous, ask for clarification instead of making assumptions.
+
+### Implementation
+
+After explicit approval:
+
+- Implement only the approved changes.
+- Follow the approved diff as closely as possible.
+- Report the actual files changed.
+- Report any deviations from the approved diff.
+- Do not commit changes unless explicitly requested.
+
+**When in doubt, STOP and ASK.**
+
 ## Overview
 
 Web application for discovering and managing FAIR geospatial metadata. Exposes a STAC-compliant REST API and a browser UI for searching STAC Items and Collections on a map.
