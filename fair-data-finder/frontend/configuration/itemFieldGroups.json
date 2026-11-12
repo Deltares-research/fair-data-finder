@@ -1,0 +1,85 @@
+[
+    {
+        "id": "domain",
+        "title": "Domain",
+        "fields": [
+            { "key": "collection", "label": "Domain", "type": "select" }
+        ]
+    },
+    {
+        "id": "general",
+        "title": "General information",
+        "fields": [
+            { "key": "projectNumber", "label": "Project number", "type": "text" },
+            { "key": "title", "label": "Project title", "type": "text" },
+            { "key": "publication_datetime", "label": "Publication date", "type": "date" },
+            { "key": "description", "label": "Description", "type": "textarea" },
+            { "key": "language", "label": "Language", "type": "select", "options": "languageOptions" },
+            { "key": "legalRestrictions", "label": "Legal restrictions", "type": "select", "options": "legalRestrictionsOptions" },
+            { "key": "restrictionsOfUse", "label": "Applications for which this data set is not suitable", "type": "textarea" },
+            { "key": "spatialReferenceSystem", "label": "Spatial reference system", "type": "select", "options": "spatialReferenceSystemOptions" }
+        ]
+    },
+    {
+        "id": "dataQuality",
+        "title": "Data quality",
+        "fields": [
+            { "key": "dataQualityInfoStatement", "label": "Description of the origin of this data set", "type": "textarea" }
+        ]
+    },
+    {
+        "id": "originatorData",
+        "title": "Originator data set",
+        "fields": [
+            { "key": "originatorDataOrganisation", "label": "Organisation", "type": "text" },
+            { "key": "originatorDataEmail", "label": "E-mail", "type": "email" }
+        ]
+    },
+    {
+        "id": "originatorMetaData",
+        "title": "Originator meta data",
+        "fields": [
+            { "key": "originatorMetaDataOrganisation", "label": "Organisation", "type": "text" },
+            { "key": "originatorMetaDataEmail", "label": "E-mail", "type": "email" }
+        ]
+    },
+    {
+        "id": "dateRange",
+        "title": "Date Range",
+        "fields": [
+            { "key": "start_datetime", "fallbackKey": "datetime", "label": "Start date", "type": "date" },
+            { "key": "end_datetime", "label": "End date (optional)", "type": "date" }
+        ]
+    },
+    {
+        "id": "typeOfOrigin",
+        "title": "Type of Origin",
+        "fields": [
+            { "key": "facility_type", "label": "Filter by Type of Origin", "type": "select", "options": "facilityTypeOptions" }
+        ]
+    },
+    {
+        "id": "keywords",
+        "title": "Keywords",
+        "fields": [
+            { "key": "keywords", "label": "Keywords", "type": "keywords" }
+        ]
+    },
+    {
+        "id": "storageLocation",
+        "title": "Storage location data set",
+        "type": "assets",
+        "fields": [
+            { "key": "title", "label": "Title of the dataset", "type": "text" },
+            { "key": "description", "label": "Description of the dataset", "type": "text" },
+            { "key": "href", "label": "Link to the dataset", "type": "url" },
+            { "key": "type", "label": "Type of dataset (e.g. file type)", "type": "text" }
+        ]
+    },
+    {
+        "id": "geometry",
+        "title": "Geometry",
+        "type": "geometry",
+        "fields": []
+    }
+]

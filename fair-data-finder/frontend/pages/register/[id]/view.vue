@@ -50,268 +50,166 @@
             {{ item.properties?.title || 'Untitled Item' }}
           </h1>
 
-          <div class="d-flex flex-wrap text-body-2 text-grey-darken-1 mb-6" style="gap: 16px;">
-            <div class="d-flex align-center">
-              <v-icon size="small" class="mr-1">
-                mdi-tag
-              </v-icon>
-              <span>ID: {{ item.id || 'Unknown ID' }}</span>
-            </div>
-            <div class="d-flex align-center">
-              <v-icon size="small" class="mr-1">
-                mdi-calendar
-              </v-icon>
-              <span>{{ formatDate(item.properties?.datetime) || 'Unknown date' }}</span>
-            </div>
-            <div v-if="item.properties?.updated" class="d-flex align-center">
-              <v-icon size="small" class="mr-1">
-                mdi-clock
-              </v-icon>
-              <span>Updated: {{ formatDate(item.properties.updated) }}</span>
-            </div>
+          <div class="d-flex align-center text-body-2 text-grey-darken-1 mb-6">
+            <v-icon size="small" class="mr-1">
+              mdi-calendar
+            </v-icon>
+            <span>{{ formatDate(item) }}</span>
           </div>
 
-          <!-- Description -->
-          <v-card class="mb-4" elevation="0">
-            <v-card-text>
-              <p class="text-body-1" style="white-space: pre-line;">
-                {{ item.properties?.description || 'No description available' }}
-              </p>
-            </v-card-text>
-          </v-card>
-
-          <!-- Map if geometry available -->
-          <v-card v-if="item.geometry" class="mb-4">
-            <v-card-title class="text-h6">
-              Geometry
-            </v-card-title>
-            <v-card-text style="min-height: 300px;">
-              <div class="map-wrapper">
-                <ClientOnly>
-                  <item-map-component
-                    :draw-mode="false"
-                    :center="mapCenter"
-                    :layer-options="layerOptions"
-                    :zoom-bounds="bounds"
-                  />
-                  <template #fallback>
-                    <div style="height: 300px;" />
-                  </template>
-                </ClientOnly>
-              </div>
-            </v-card-text>
-          </v-card>
-
-          <!-- Assets Section -->
-          <v-card class="mb-4">
-            <v-card-title class="text-subtitle-1 d-flex align-center bg-grey-lighten-3">
-              <v-icon
-                class="mr-2"
-                size="small"
-                style="opacity: 0.3"
-              >
-                mdi-file
-              </v-icon>
-              Assets
-              <v-spacer />
-              <v-btn
-                icon
-                variant="text"
-                size="small"
-                @click="assetsExpanded = !assetsExpanded"
-              >
-                <v-icon>{{ assetsExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-expand-transition>
-              <v-card-text v-show="assetsExpanded">
-                <div v-if="!assets || assets.length === 0" class="text-body-2 text-grey-darken-1">
-                  No assets available
+          <!-- Same sections, order and labels as the register form -->
+          <template v-for="group in itemFieldGroups" :key="group.id">
+            <v-card v-if="group.type === 'geometry'" class="mb-4">
+              <v-card-title class="text-h6">
+                {{ group.title }}
+              </v-card-title>
+              <v-card-text v-if="item.geometry" style="min-height: 300px;">
+                <div class="map-wrapper">
+                  <ClientOnly>
+                    <item-map-component
+                      :draw-mode="false"
+                      :center="mapCenter"
+                      :layer-options="layerOptions"
+                      :zoom-bounds="bounds"
+                    />
+                    <template #fallback>
+                      <div style="height: 300px;" />
+                    </template>
+                  </ClientOnly>
                 </div>
-                <div v-else>
-                  <div
-                    v-for="(assetGroup, role) in groupedAssets"
-                    :key="role"
-                    class="mb-6"
-                  >
-                    <h3 class="text-subtitle-1 font-weight-medium mb-3 text-primary">
-                      {{ role }}
-                    </h3>
-                    <div class="d-flex flex-column" style="gap: 16px;">
-                      <v-card
-                        v-for="asset in assetGroup"
-                        :key="asset.key"
-                        variant="outlined"
-                        class="pa-4"
-                      >
-                        <div class="d-flex justify-space-between align-center mb-2">
-                          <h4 class="text-subtitle-2 font-weight-medium">
-                            {{ asset.title }}
-                          </h4>
-                          <v-chip
-                            size="small"
-                            color="primary"
-                            variant="tonal"
-                          >
-                            {{ asset.type }}
-                          </v-chip>
-                        </div>
-                        <p v-if="asset.description" class="text-body-2 text-grey-darken-1 mb-2">
-                          {{ asset.description }}
-                        </p>
-                        <div class="text-body-2 text-grey-darken-1 mb-3" style="word-break: break-all;">
-                          <v-icon size="small" class="mr-1">
-                            mdi-link
-                          </v-icon>
-                          {{ asset.href }}
-                        </div>
-                        <div>
-                          <v-btn
+              </v-card-text>
+              <v-card-text v-else class="text-body-2 text-grey-darken-1">
+                —
+              </v-card-text>
+            </v-card>
+
+            <v-card v-else-if="group.type === 'assets'" class="mb-4">
+              <v-card-title class="text-h6">
+                {{ group.title }}
+              </v-card-title>
+              <v-card-text>
+                <div v-if="assets.length === 0" class="text-body-2 text-grey-darken-1">
+                  —
+                </div>
+                <v-table
+                  v-for="asset in assets"
+                  :key="asset.key"
+                  density="compact"
+                  class="mb-4 border rounded"
+                >
+                  <tbody>
+                    <tr v-for="field in group.fields" :key="field.key">
+                      <td class="text-subtitle-2 font-weight-medium label-cell">
+                        {{ field.label }}
+                      </td>
+                      <td style="word-break: break-all;">
+                        <template v-if="field.key === 'href' && asset.href">
+                          <a
                             v-if="isUrl(asset.href)"
                             :href="asset.href"
                             target="_blank"
                             rel="noopener noreferrer"
-                            variant="outlined"
-                            size="small"
-                            prepend-icon="mdi-open-in-new"
+                            class="text-primary"
                           >
-                            Open
-                          </v-btn>
-                          <v-btn
-                            v-else
-                            variant="outlined"
-                            size="small"
-                            prepend-icon="mdi-content-copy"
-                            @click="copyToClipboard(asset.href, asset.key)"
-                          >
-                            {{ copiedAssets[asset.key] ? 'Copied!' : 'Copy' }}
-                          </v-btn>
-                        </div>
-                      </v-card>
-                    </div>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-expand-transition>
-          </v-card>
-
-          <!-- Properties Section -->
-          <v-card class="mb-4">
-            <v-card-title class="text-subtitle-1 d-flex align-center bg-grey-lighten-3">
-              <v-icon
-                class="mr-2"
-                size="small"
-                style="opacity: 0.3"
-              >
-                mdi-information
-              </v-icon>
-              Properties
-              <v-spacer />
-              <v-btn
-                icon
-                variant="text"
-                size="small"
-                @click="propertiesExpanded = !propertiesExpanded"
-              >
-                <v-icon>{{ propertiesExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-expand-transition>
-              <v-card-text v-show="propertiesExpanded">
-                <v-table>
-                  <tbody>
-                    <tr
-                      v-for="prop in properties"
-                      :key="prop.key"
-                    >
-                      <td class="text-subtitle-2 font-weight-medium">
-                        {{ formatPropertyKey(prop.key) }}
-                      </td>
-                      <td>
-                        <a
-                          v-if="isUrl(prop.value)"
-                          :href="prop.value"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="text-primary"
-                        >
-                          {{ prop.value }}
-                          <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
-                        </a>
-                        <span v-else class="text-grey-darken-1">{{ formatValue(prop.key, prop.value) }}</span>
+                            {{ asset.href }}
+                            <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
+                          </a>
+                          <span v-else>
+                            {{ asset.href }}
+                            <v-btn
+                              variant="text"
+                              size="small"
+                              prepend-icon="mdi-content-copy"
+                              @click="copyToClipboard(asset.href, asset.key)"
+                            >
+                              {{ copiedAssets[asset.key] ? 'Copied!' : 'Copy' }}
+                            </v-btn>
+                          </span>
+                        </template>
+                        <span v-else>{{ asset[field.key] || '—' }}</span>
                       </td>
                     </tr>
                   </tbody>
                 </v-table>
               </v-card-text>
-            </v-expand-transition>
-          </v-card>
+            </v-card>
 
-          <!-- Providers Section (if available) -->
-          <v-card v-if="providers && providers.length > 0" class="mb-4">
-            <v-card-title class="text-subtitle-1 d-flex align-center bg-grey-lighten-3">
-              <v-icon
-                class="mr-2"
-                size="small"
-                style="opacity: 0.3"
-              >
-                mdi-account-group
-              </v-icon>
-              Providers
-              <v-spacer />
-              <v-btn
-                icon
-                variant="text"
-                size="small"
-                @click="providersExpanded = !providersExpanded"
-              >
-                <v-icon>{{ providersExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-              </v-btn>
+            <v-card v-else class="mb-4">
+              <v-card-title class="text-h6">
+                {{ group.title }}
+              </v-card-title>
+              <v-card-text>
+                <v-table density="compact">
+                  <tbody>
+                    <tr v-for="field in group.fields" :key="field.key">
+                      <td class="text-subtitle-2 font-weight-medium label-cell">
+                        {{ field.label }}
+                      </td>
+                      <td>
+                        <div
+                          v-if="field.type === 'keywords'"
+                          class="d-flex flex-wrap py-2"
+                          style="gap: 8px;"
+                        >
+                          <v-chip
+                            v-for="keyword in keywords"
+                            :key="keyword.id"
+                            size="small"
+                            variant="tonal"
+                          >
+                            {{ keyword.nl_keyword || keyword.en_keyword }}
+                          </v-chip>
+                          <span v-if="keywords.length === 0">—</span>
+                        </div>
+                        <span v-else style="white-space: pre-line;">{{ displayValue(field) }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </v-card-text>
+            </v-card>
+          </template>
+
+          <!-- Everything the search returns that the register form does not cover -->
+          <v-card v-if="otherInformation.length > 0" class="mb-4">
+            <v-card-title class="text-h6">
+              Other information
             </v-card-title>
-            <v-expand-transition>
-              <v-card-text v-show="providersExpanded">
-                <div class="d-flex flex-column" style="gap: 16px;">
-                  <v-card
-                    v-for="(provider, index) in providers"
-                    :key="index"
-                    variant="outlined"
-                    class="pa-4"
-                  >
-                    <h4 class="text-subtitle-2 font-weight-medium mb-2">
-                      {{ provider.name }}
-                    </h4>
-                    <p v-if="provider.description" class="text-body-2 text-grey-darken-1 mb-2">
-                      {{ provider.description }}
-                    </p>
-                    <div v-if="provider.url" class="mb-2">
+            <v-card-text>
+              <v-table density="compact">
+                <tbody>
+                  <tr v-for="entry in otherInformation" :key="entry.key">
+                    <td class="text-subtitle-2 font-weight-medium label-cell">
+                      {{ entry.label }}
+                    </td>
+                    <td style="word-break: break-all;">
+                      <div v-if="entry.key === 'links'">
+                        <div v-for="link in entry.value" :key="`${link.rel}-${link.href}`">
+                          <a
+                            :href="link.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-primary"
+                          >
+                            {{ link.rel }}: {{ link.href }}
+                          </a>
+                        </div>
+                      </div>
                       <a
-                        :href="provider.url"
+                        v-else-if="isUrl(entry.value)"
+                        :href="entry.value"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-primary text-body-2"
+                        class="text-primary"
                       >
-                        <v-icon size="small" class="mr-1">mdi-link</v-icon>
-                        {{ provider.url }}
+                        {{ entry.value }}
                       </a>
-                    </div>
-                    <div
-                      v-if="provider.role && provider.role.length > 0"
-                      class="d-flex flex-wrap"
-                      style="gap: 8px;"
-                    >
-                      <v-chip
-                        v-for="role in provider.role"
-                        :key="role"
-                        size="small"
-                        variant="tonal"
-                      >
-                        {{ role }}
-                      </v-chip>
-                    </div>
-                  </v-card>
-                </div>
-              </v-card-text>
-            </v-expand-transition>
+                      <span v-else style="white-space: pre-wrap;">{{ formatOtherValue(entry.key, entry.value) }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-card-text>
           </v-card>
 
           <!-- Back button -->
@@ -330,8 +228,14 @@
   import { ref, computed, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
   import { center } from '@turf/turf'
+  import dateFormat from 'dateformat'
+  import itemFieldGroups from '~/configuration/itemFieldGroups.json'
+  import languageOptions from '~/configuration/languageOptions.json'
+  import legalRestrictionsOptions from '~/configuration/legalRestrictionsOptions.json'
+  import spatialReferenceSystemOptions from '~/configuration/spatialReferenceSystemOptions.json'
+  import facilityTypeOptions from '~/configuration/facilityTypeOptions.json'
   import { fetchItemById } from '~/requests/items'
-  import { formatDate } from '~/utils/helpers'
+  import { formatDate, humanizeKey } from '~/utils/helpers'
   import buildGeoJsonLayer from '~/utils/build-geojson-layer'
 
   const route = useRoute()
@@ -343,9 +247,25 @@
   
 
   const copiedAssets = ref({})
-  const assetsExpanded = ref(true)
-  const propertiesExpanded = ref(true)
-  const providersExpanded = ref(true)
+
+  const optionLists = {
+    languageOptions,
+    legalRestrictionsOptions,
+    spatialReferenceSystemOptions,
+    facilityTypeOptions,
+  }
+
+  // Top-level item fields shown in their own sections (Domain, Geometry,
+  // Storage location data set); every other top-level field goes to Other information.
+  const SECTION_TOP_LEVEL_KEYS = [ 'id', 'properties', 'collection', 'geometry', 'assets' ]
+
+  // Properties covered by the configured sections, including fallback keys
+  const groupedPropertyKeys = new Set(
+    itemFieldGroups
+      .filter(group => !group.type)
+      .flatMap(group => group.fields.flatMap(field => [ field.key, field.fallbackKey ]))
+      .filter(Boolean),
+  )
 
   // Computed properties
   const assets = computed(() => {
@@ -354,58 +274,66 @@
       key,
       title: asset.title || key,
       href: asset.href || '',
-      type: asset.type || 'Unknown type',
+      type: asset.type || '',
       description: asset.description || '',
-      roles: asset.roles || [],
     }))
   })
 
-  const groupedAssets = computed(() => {
-    const groups = {}
-    assets.value.forEach((asset) => {
-      if (asset.roles && asset.roles.length > 0) {
-        asset.roles.forEach((role) => {
-          if (!groups[role]) groups[role] = []
-          groups[role].push(asset)
-        })
-      } else {
-        if (!groups['uncategorized']) groups['uncategorized'] = []
-        groups['uncategorized'].push(asset)
-      }
-    })
-    return groups
+  const keywords = computed(() => {
+    const value = item.value?.properties?.keywords
+    return Array.isArray(value) ? value : []
   })
 
-  const properties = computed(() => {
-    if (!item.value?.properties) return []
-    const excluded = ['title', 'description', 'datetime', 'updated', 'created']
-    return Object.entries(item.value.properties)
-      .filter(([key]) => !excluded.includes(key))
-      .map(([key, value]) => ({ key, value }))
+  const otherInformation = computed(() => {
+    if (!item.value) return []
+    const properties = item.value.properties || {}
+    const entries = [
+      [ 'id', item.value.id ],
+      ...Object.entries(properties).filter(([ key ]) => !groupedPropertyKeys.has(key)),
+      ...Object.entries(item.value).filter(([ key ]) => !SECTION_TOP_LEVEL_KEYS.includes(key)),
+    ]
+    return entries
+      .filter(([ , value ]) => !isEmpty(value))
+      .map(([ key, value ]) => ({ key, value, label: humanizeKey(key) }))
   })
 
-  const providers = computed(() => {
-    return item.value?.properties?.providers || []
-  })
-  
   // Methods
-  function formatPropertyKey(key) {
-    return key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .trim()
+  function isEmpty(value) {
+    return value === null || value === undefined || value === '' ||
+      (Array.isArray(value) && value.length === 0)
   }
 
-  function formatValue(key, value) {
-    if (key === 'keywords' && Array.isArray(value)) {
-      return value.map(k => k.nl_keyword || k.en_keyword || JSON.stringify(k)).join(', ')
+  function fieldValue(field) {
+    if (field.key === 'collection') return item.value?.collection
+    const properties = item.value?.properties || {}
+    return properties[field.key] ?? (field.fallbackKey ? properties[field.fallbackKey] : undefined)
+  }
+
+  // Same day format as the register form (dd-mm-yyyy, UTC date part)
+  function formatDay(value) {
+    const date = new Date(value)
+    return isNaN(date.getTime()) ? String(value) : dateFormat(date, 'dd-mm-yyyy', true)
+  }
+
+  function displayValue(field) {
+    const value = fieldValue(field)
+    if (isEmpty(value)) return '—'
+    if (field.type === 'date') return formatDay(value)
+    if (field.options) {
+      return optionLists[field.options]?.find(option => option.value === value)?.title || String(value)
     }
-    if (key.includes('datetime') || key.includes('date')) {
-      return formatDate(value) || String(value)
+    return String(value)
+  }
+
+  function formatOtherValue(key, value) {
+    if (Array.isArray(value) && value.every(entry => typeof entry !== 'object')) {
+      return value.join(', ')
     }
-    if (value === null) return 'None'
-    if (value === undefined) return 'Undefined'
     if (typeof value === 'object') return JSON.stringify(value, null, 2)
+    if (typeof value === 'string' && /date|time|created|updated/i.test(key)) {
+      const date = new Date(value)
+      if (!isNaN(date.getTime())) return dateFormat(date, 'dd-mm-yyyy HH:MM:ss')
+    }
     return String(value)
   }
 
@@ -469,5 +397,11 @@
     width: 100%;
     height: 100%;
     min-height: 300px;
+  }
+
+  .label-cell {
+    width: 40%;
+    vertical-align: top;
+    padding-top: 8px !important;
   }
 </style>

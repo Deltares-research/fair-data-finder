@@ -1,3 +1,5 @@
+import itemFieldGroups from '~/configuration/itemFieldGroups.json'
+
 function getOrdinalSuffix(day) {
   if (day > 3 && day < 21) return 'th'
   switch (day % 10) {
@@ -59,6 +61,26 @@ export function formatDate(feature) {
   }
   
   return '—'
+}
+
+// Sentence-case label for fields without a configured label,
+// e.g. metadataStandardName -> "Metadata standard name"
+export function humanizeKey(key) {
+  const words = String(key)
+    .replace(/_/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .trim()
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+export function getGroupTitle(groupId) {
+  return itemFieldGroups.find(group => group.id === groupId)?.title || ''
+}
+
+export function getFieldLabel(groupId, key) {
+  const group = itemFieldGroups.find(group => group.id === groupId)
+  return group?.fields.find(field => field.key === key)?.label || humanizeKey(key)
 }
 
 export function firstAssetHref(feature) {

@@ -63,7 +63,7 @@
               <v-select
                 v-model="formData.collection"
                 :items="collectionOptions"
-                label="Domain"
+                :label="getFieldLabel('domain', 'collection')"
                 variant="outlined"
                 @update:model-value="handleCollectionChange"
               />
@@ -73,14 +73,14 @@
           <!-- General Information -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              General information
+              {{ getGroupTitle('general') }}
             </v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.projectNumber"
-                    label="Project number"
+                    :label="getFieldLabel('general', 'projectNumber')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     :rules="[projectNumberRule]"
@@ -89,7 +89,7 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.title"
-                    label="Project title"
+                    :label="getFieldLabel('general', 'title')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     required
@@ -106,7 +106,7 @@
                       <v-text-field
                         v-bind="props"
                         v-model="publicationDateDisplay"
-                        label="Publication date"
+                        :label="getFieldLabel('general', 'publication_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -135,7 +135,7 @@
                 <v-col cols="12">
                   <v-textarea
                     v-model="formData.properties.description"
-                    label="Description"
+                    :label="getFieldLabel('general', 'description')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     rows="3"
@@ -146,7 +146,7 @@
                   <v-select
                     v-model="formData.properties.language"
                     :items="languageOptions"
-                    label="Language"
+                    :label="getFieldLabel('general', 'language')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -155,7 +155,7 @@
                   <v-select
                     v-model="formData.properties.legalRestrictions"
                     :items="legalRestrictionsOptions"
-                    label="Legal restrictions"
+                    :label="getFieldLabel('general', 'legalRestrictions')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -163,7 +163,7 @@
                 <v-col cols="12">
                   <v-textarea
                     v-model="formData.properties.restrictionsOfUse"
-                    label="Applications for which this data set is not suitable"
+                    :label="getFieldLabel('general', 'restrictionsOfUse')"
                     variant="outlined"
                     :disabled="!formData.collection"
                     rows="2"
@@ -200,12 +200,12 @@
           <!-- Data Quality -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Data quality
+              {{ getGroupTitle('dataQuality') }}
             </v-card-title>
             <v-card-text>
               <v-textarea
                 v-model="formData.properties.dataQualityInfoStatement"
-                label="Description of the origin of this data set"
+                :label="getFieldLabel('dataQuality', 'dataQualityInfoStatement')"
                 variant="outlined"
                 :disabled="!formData.collection"
                 rows="3"
@@ -216,14 +216,14 @@
           <!-- Originator Data Set -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Originator data set
+              {{ getGroupTitle('originatorData') }}
             </v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorDataOrganisation"
-                    label="Organisation"
+                    :label="getFieldLabel('originatorData', 'originatorDataOrganisation')"
                     variant="outlined"
                     :disabled="!formData.collection"
                   />
@@ -231,7 +231,7 @@
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorDataEmail"
-                    label="E-mail"
+                    :label="getFieldLabel('originatorData', 'originatorDataEmail')"
                     variant="outlined"
                     type="email"
                     :disabled="!formData.collection"
@@ -245,21 +245,21 @@
           <!-- Originator Meta Data -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true) && formData.collection" class="mb-4">
             <v-card-title class="text-h6">
-              Originator meta data
+              {{ getGroupTitle('originatorMetaData') }}
             </v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorMetaDataOrganisation"
-                    label="Organisation"
+                    :label="getFieldLabel('originatorMetaData', 'originatorMetaDataOrganisation')"
                     variant="outlined"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     v-model="formData.properties.originatorMetaDataEmail"
-                    label="E-mail"
+                    :label="getFieldLabel('originatorMetaData', 'originatorMetaDataEmail')"
                     variant="outlined"
                     type="email"
                     :rules="[emailRule]"
@@ -272,7 +272,7 @@
           <!-- Date Range -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Date Range
+              {{ getGroupTitle('dateRange') }}
             </v-card-title>
             <v-card-text>
               <v-row>
@@ -287,7 +287,7 @@
                       <v-text-field
                         v-bind="props"
                         v-model="startDateDisplay"
-                        label="Start date"
+                        :label="getFieldLabel('dateRange', 'start_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -324,7 +324,7 @@
                       <v-text-field
                         v-bind="props"
                         v-model="endDateDisplay"
-                        label="End date (optional)"
+                        :label="getFieldLabel('dateRange', 'end_datetime')"
                         variant="outlined"
                         :disabled="!formData.collection"
                         readonly
@@ -360,13 +360,13 @@
           <!-- Type of Origin -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Type of Origin
+              {{ getGroupTitle('typeOfOrigin') }}
             </v-card-title>
             <v-card-text>
               <v-select
                 v-model="selectedFacilityType"
                 :items="facilityTypeOptions"
-                label="Filter by Type of Origin"
+                :label="getFieldLabel('typeOfOrigin', 'facility_type')"
                 variant="outlined"
                 :disabled="!formData.collection"
                 @update:model-value="handleFacilityTypeChange"
@@ -377,7 +377,7 @@
           <!-- Keywords -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true) && formData.collection && filteredKeywordsGroups.length > 0" class="mb-4">
             <v-card-title class="text-h6">
-              Keywords
+              {{ getGroupTitle('keywords') }}
             </v-card-title>
             <v-card-text>
               <v-row>
@@ -412,7 +412,7 @@
           <!-- Storage Location Data Set -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Storage location data set
+              {{ getGroupTitle('storageLocation') }}
             </v-card-title>
             <v-card-text>
               <div
@@ -424,7 +424,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.title"
-                      label="Title of the dataset"
+                      :label="getFieldLabel('storageLocation', 'title')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -432,7 +432,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.description"
-                      label="Description of the dataset"
+                      :label="getFieldLabel('storageLocation', 'description')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -440,7 +440,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.href"
-                      label="Link to the dataset"
+                      :label="getFieldLabel('storageLocation', 'href')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -448,7 +448,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="asset.type"
-                      label="Type of dataset (e.g. file type)"
+                      :label="getFieldLabel('storageLocation', 'type')"
                       variant="outlined"
                       :disabled="!formData.collection"
                     />
@@ -480,7 +480,7 @@
           <!-- Geometry -->
           <v-card v-if="!isLoading && (mode === 'create' ? collections.length > 0 : true)" class="mb-4">
             <v-card-title class="text-h6">
-              Geometry
+              {{ getGroupTitle('geometry') }}
             </v-card-title>
             <v-card-text style="min-height: 300px;">
               <div class="mb-4 map-wrapper">
@@ -625,7 +625,7 @@
   import facilityTypeOptions from '~/configuration/facilityTypeOptions.json'
   import { fetchCollectionsWithCreatePermission, fetchCollectionById, fetchKeywordsByFacilityId } from '~/requests'
   import { fetchItemById, createItem, updateItem } from '~/requests/items'
-  import { parseAndValidateCoordinates, createGeometryFromCoordinates as createGeometry } from '~/utils/helpers'
+  import { parseAndValidateCoordinates, createGeometryFromCoordinates as createGeometry, getGroupTitle, getFieldLabel } from '~/utils/helpers'
   import buildGeoJsonLayer from '~/utils/build-geojson-layer'
   import { useRegisterStore } from '~/stores/register'
 

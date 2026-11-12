@@ -41,4 +41,4 @@ The application stores who created each item (in the `itemowner` table). Items c
 | Delete an item | Anyone with `item:delete` on that collection (Collection Data Steward) |
 | Bulk upsert (`POST /collections/{collection_id}/bulk_items` with method `upsert`) | Only users with `item:update` on that collection, because it can overwrite other people's items |
 
-The register list only shows the **Edit** and **Delete** buttons for items you are allowed to change. `GET /owned-items` returns the items created by the logged-in user.
+`GET /owned-items` returns the items created by the logged-in user.

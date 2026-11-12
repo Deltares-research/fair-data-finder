@@ -85,7 +85,6 @@
         <!-- eslint-disable-next-line vue/valid-v-slot -->
         <template #[`item.edit`]="{ item }">
           <v-btn
-            v-if="permissionsStore.canEditItem(item.domain, item.id)"
             variant="text"
             size="small"
             prepend-icon="mdi-pencil"
@@ -100,7 +99,6 @@
         <!-- eslint-disable-next-line vue/valid-v-slot -->
         <template #[`item.delete`]="{ item }">
           <v-btn
-            v-if="permissionsStore.canDeleteItem(item.domain)"
             variant="text"
             size="small"
             prepend-icon="mdi-delete"
@@ -138,10 +136,8 @@
 <script setup>
   import { ref, computed } from 'vue'
   import { useRouter } from 'vue-router'
-  import { useNuxtApp } from '#app'
   import dateFormat from 'dateformat'
   import { useRegisterStore } from '~/stores/register'
-  import { usePermissionsStore } from '~/stores/permissions'
 
   // Component name for Vue linting
   defineOptions({
@@ -153,8 +149,6 @@
 
   // Store
   const store = useRegisterStore()
-  const permissionsStore = usePermissionsStore()
-  const { $api } = useNuxtApp()
 
   // Table configuration
   const headers = [
@@ -248,8 +242,6 @@
   // immediately and refresh it silently in the background instead of
   // blanking the table behind a spinner every time this tab is revisited.
   store.fetchItems(null, { silent: store.hasLoaded })
-  // Decides which Edit and Delete buttons are shown
-  permissionsStore.fetchItemPermissions($api)
 </script>
 
 <style scoped>

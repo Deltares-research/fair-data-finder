@@ -93,8 +93,8 @@ are shown or searched when present:
 
 | Field | Notes |
 |-------|-------|
-| `properties.providers` | Shown on the item detail page if present |
-| `properties.updated` / `properties.created` | Shown on the item detail page if present |
+| `properties.providers` | Shown under *Other information* on the item detail page if present |
+| `properties.updated` / `properties.created` | Shown under *Other information* on the item detail page |
 | `properties.license`, `metadataStandardName`, `progressCode` | Included in full-text search matching if present |
 | `properties.storagelocation` | Shown as a column on the Register list; the form stores access links in **assets** |
 
