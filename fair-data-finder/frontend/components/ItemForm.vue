@@ -487,7 +487,7 @@
                 <ClientOnly>
                   <item-map-component
                     :enabled-tools="['polygon', 'marker']"
-                    :center="mode === 'create' ? [5.1, 52.07] : [0, 0]"
+                    :center="mapCenter"
                     :zoom="mode === 'create' ? undefined : 2"
                     :layer-options="layerOptions"
                     :zoom-bounds="zoomBounds"
@@ -793,6 +793,9 @@
 
   // Calculate zoom bounds from geometry (only once at mount)
   const zoomBounds = ref([])
+
+  // Stable reference: a new array per render makes MapboxMap re-centre on every re-render
+  const mapCenter = props.mode === 'create' ? [5.1, 52.07] : [0, 0]
 
   // Methods
   async function fetchCollections() {
