@@ -33,4 +33,4 @@ Full documentation lives in [`docs/`](docs/README.md):
 
 ## Contributing
 
-Create a branch from `main`, follow [Conventional Commits](https://www.conventionalcommits.org/), and open a pull request. See [Contributing](docs/guides/contributing.md) for details.
+Create a branch from `dev`, follow [Conventional Commits](https://www.conventionalcommits.org/), and open a pull request into `dev`. See [Contributing](docs/guides/contributing.md) for details.
